@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn.glitch.global/4da06f4c-d298-4773-80c5-a6d2e6b82952/marisa.png?1724874077496"
+    />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>WebAuthn Signal API Demo</title>
+
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- import the webpage's javascript file -->
+    <script src="/common.js" defer></script>
+    <script src="/webauthn-utils.js" defer></script>
+    <script src="/site.js" defer></script>
+  </head>
+  <body>
+    <div class="frame">
+      <h1>~ Gensokyo, land of illusions ~</h1>
+      <div class="message" id="message" style="display: none"></div>
+      <p>
+        Welcome <b><span id="username"></span></b>!
+      </p>
+    </div>
+    <div class="frame">
+      <h3>Choose your favourite character</h3>
+      <select id="favourite-char"></select>
+      <p id="favourite-char-bio">    
+      </p>
+    </div>
+    <div class="frame">
+      <h2>Account management</h2>
+      <form action="#">
+        <label for="change-username">Your username: </label>
+        <input
+          type="text"
+          name="change-username"
+          id="change-username"
+          value=""
+          required
+        />
+        <button type="submit" id="change-username-button">
+          Change username
+        </button>
+      </form>
+      <h4>Your passkeys</h4>
+      <table style="width: 100%">
+        <thead>
+          <tr>
+            <td style="">Provider</td>
+            <td style="width: 10em">ID</td>
+            <td style="width: 5em"></td>
+          </tr>
+        </thead>
+        <tbody id="passkey-table-body"></tbody>
+        <tbody>
+          <tr>
+            <td colspan="3" style="text-align: center">
+              <button id="add-passkey">Add passkey</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="text-align: right; margin-top: 30px">
+        <button id="sign-out">Sign out</button>
+      </div>
+    </div>
+  </body>
+</html>

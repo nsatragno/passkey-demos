@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn.glitch.global/4da06f4c-d298-4773-80c5-a6d2e6b82952/marisa.png?1724874077496"
+    />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>WebAuthn Signal API Demo</title>
+
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- import the webpage's javascript file -->
+    <script src="/common.js" defer></script>
+    <script src="/webauthn-utils.js" defer></script>
+    <script src="/index.js" defer></script>
+  </head>
+  <body>
+    <div class="frame">
+      <h1>WebAuthn Signal API Demo</h1>
+      <div class="message" id="message" style="display: none"></div>
+      <p>
+        Welcome to my Touhou fan site! It's super exclusive, so you need an
+        account.
+      </p>
+      <button class="sign-in-button pixelart" id="sign-in-button">
+        <img
+          src="https://cdn.glitch.global/4da06f4c-d298-4773-80c5-a6d2e6b82952/reimu.png?1725476090077"
+        />
+        <span style="vertical-align: 50%">Sign in with your passkey</span>
+        <img
+          src="https://cdn.glitch.global/4da06f4c-d298-4773-80c5-a6d2e6b82952/marisa.png?1724874077496"
+        />
+      </button>
+    </div>
+    <div class="frame">
+      <h3>Don't have an account? Create one:</h3>
+      <form action="#">
+        <label for="username">Username: </label>
+        <input type="text" name="username" id="username" value="" required />
+        <button type="submit" id="sign-up-button">Sign up!</button>
+      </form>
+      <p>
+        <i
+          >Can't decide on a good username? Don't worry, you can change it
+          later!</i
+        >
+      </p>
+    </div>
+    <div class="frame">
+      <h3>Demo instructions</h3>
+      <p>
+        Please run this demo on the latest
+        <a href="https://www.google.com/intl/en_ca/chrome/canary/">Canary</a>
+        desktop version of Chrome. For now, only Google Password Manager
+        passkeys are supported.
+
+        <a href="https://developer.chrome.com/docs/devtools/webauthn/"
+          >WebAuthn Devtools</a
+        >
+        support is coming soon.
+      </p>
+      <p>Requirements:</p>
+
+      <ul>
+        <li>
+          <a href="https://www.google.com/intl/en_ca/chrome/canary/"
+            >Chrome Canary</a
+          >
+        </li>
+        <li>A Google account</li>
+        <li>
+          Either of these:
+          <ul>
+            <li>A Windows machine with a TPM</li>
+            <li>A Mac</li>
+            <li>A Linux machine</li>
+          </ul>
+        </li>
+      </ul>
+
+      <p>Instructions:</p>
+
+      <ol>
+        <li>
+          Enable the web platform experimental features flag
+          (chrome://flags/#enable-experimental-web-platform-features) and
+          restart Chrome.
+        </li>
+        <li>Sign in to Chrome with a Google account.</li>
+        <li>
+          When creating a passkey, choose "Google Password Manager" and follow
+          instructions.
+        </li>
+        <li>
+          Play with the buttons. Here are some things you can try:
+          <ul>
+            <li>
+              Whenever you sign in or remove a credential,
+              <code>signalAllAcceptedCredentials</code> is called. This should
+              remove or hide any credentials removed by the user.
+            </li>
+            <li>
+              If you change your username,
+              <code>signalCurrentUserDetails</code> is called and it should
+              update your passkeys.
+            </li>
+            <li>
+              If you delete your account, no signal API calls are made. But if
+              you try to sign in to that account with a passkey for it,
+              <code>signalUnknownCredential</code> is called.
+            </li>
+          </ul>
+        </li>
+      </ol>
+      <p>
+        This site is "write-once" and a bit of a test bed. Things are bound to
+        break.
+      </p>
+      <p>
+        This website doesn't store anything on the server, so you can't try
+        signing in with the same passkey from another browser instance. Go use
+        <a href="https://webauthn.io">Matt's site</a> if you wanna do that.
+        Still, don't enter any information you wouldn't want me to know (:
+      </p>
+      <p>
+        <i
+          >Pixel art by code farmer:
+          <a href="https://code-farmer.itch.io/touhou-pixe-characters"
+            >https://code-farmer.itch.io/touhou-pixe-characters</a
+          >, thank you so much! &lt;3</i
+        >
+      </p>
+    </div>
+    <div class="frame">
+      <h3>Debugging</h3>
+      <button id="clearLocalStorage">Clear local storage</button>
+    </div>
+  </body>
+</html>

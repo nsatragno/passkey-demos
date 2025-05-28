@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" 
+      type="image/png" 
+      href="https://cdn.glitch.global/e5cae197-97ea-40a2-a843-b7564fc504ab/favicon.png?v=1659641377260"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>WebAuthn Conditional UI Demo!</title>
+    
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+    
+    <!-- import the webpage's javascript file -->
+    <script src="/common.js" defer></script>
+    <script src="/script.js" defer></script>
+  </head>  
+  <body>
+    <h1>WebAuthn Conditional UI Demo</h1>
+    <div class="warning" id="warning" style="display: none;"></div>
+    <div class="error" id="error" style="display: none;">
+    </div>
+    <div class="message" id="message" style="display: none;">
+    </div>
+    <form class="form-container" action="site.html" method="get">
+      <label for="username">Username:</label>
+      <input name="username" id="login-username" value="" required autocomplete="webauthn" autofocus/>
+      <label for="username">Fake password:</label>
+      <input id="password" value="" required type="password" autocomplete="current-password webauthn"/>
+      <div class="button-box">
+        <button id="manual-login" type="submit">
+          Log-in with vanilla WebAuthn
+        </button>
+        <button id="login" type="submit">
+          <strong>Log-in</strong>
+        </button>
+      </div> 
+    </form>
+    
+    <p>
+      Don't have an account? <a href="create-account.html">Sign up</a>
+    </p>
+    
+    <hr>
+    
+    <p>
+      Please run this demo on the latest 
+      <a href="https://www.google.com/intl/en_ca/chrome/canary/">Canary</a> / Dev version
+      of chrome. The feature is supported on Mac (any version), Windows (win11 developer preview), Android or
+      any desktop OS if using the <a href="https://developer.chrome.com/docs/devtools/webauthn/">WebAuthn Devtools</a>
+      (make sure you add a platform authenticator with resident key and UV support).
+    </p>
+    <p>
+      In theory this should work on Safari technology preview.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Any username / password will be accepted, this is only a demo to showcase the
+      Conditional UI API usage. In order to see anything interesting, try signing up and
+      opening the log-in page again. If everything works, the browser should prompt you to
+      log-in using your passkey. This website doesn't store anything on the server. Still,
+      don't use your actual username / password :)
+    </p>
+    <p>
+      On desktop, you can manage your credentials on chrome://settings/passkeys.
+    </p>
+    
+    <h2>
+      Known Chrome issues:
+    </h2>
+    <ul>
+      <li><a href="https://bugs.chromium.org/p/chromium/issues/list?q=conditional%20ui%20component%3ABlink%3EWebAuthentication&can=2">
+        Issue list
+      </a></li>
+      <li>I use this demo to test chrome during development so things might break as I experiment with new failure modes.</li>
+    </ul>
+    
+    <p style="font-style: italic">
+      I heard the design of this demo website sucks, feel free to remix or send patches :)
+    </p>
+  </body>
+</html>
