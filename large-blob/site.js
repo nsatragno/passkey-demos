@@ -46,5 +46,5 @@ document.getElementById("store").addEventListener("click", (e) => {
 
 document.getElementById("logout").addEventListener("click", (e) => {
   e.preventDefault();
-  window.location = "/?message=Logged out successfully";
+  window.location = "?message=Logged out successfully";
 });
