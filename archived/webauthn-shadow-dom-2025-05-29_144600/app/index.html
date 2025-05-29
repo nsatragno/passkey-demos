@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="https://glitch.com/favicon.ico" />
+    <title>Hello World!</title>
+
+    <!-- Import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- Import the webpage's javascript file -->
+    <script src="/script.js" defer></script>
+    
+    <script>
+			navigator.credentials.get({
+				publicKey: {
+					challenge: new Uint8Array([1, 2, 3, 4])
+				},
+				mediation: 'conditional'
+			});
+
+			class UiForm extends HTMLElement {
+				constructor() {
+					super();
+					this.attachShadow({ mode: 'open' });
+				}
+
+				connectedCallback() {
+					this.render();
+				}
+
+				render() {
+					const template = document.createElement('template');
+					template.innerHTML = `
+          <form>
+			      <h1>Shadow DOM, email</h1>
+			      <p>From is inside a shadow DOM and contains an email input:</p>
+			      <input name="email" type="text" placeholder="DOM" autocomplete="webauthn" />
+            <button type="submit">Click</button>
+		      </form>
+          `;
+					this.shadowRoot.appendChild(template.content.cloneNode(true));
+				}
+			}
+      
+      class PasswordUiForm extends HTMLElement {
+				constructor() {
+					super();
+					this.attachShadow({ mode: 'open' });
+				}
+
+				connectedCallback() {
+					this.render();
+				}
+
+				render() {
+					const template = document.createElement('template');
+					template.innerHTML = `
+          <form>
+			      <h1>Shadow DOM, password</h1>
+			      <p>From is inside a shadow DOM and contains a password input:</p>
+            <input name="email" type="text" placeholder="DOM" autocomplete="current-username" />
+			      <input name="password" type="password" placeholder="" autocomplete="webauthn" />
+            <button type="submit">Click</button>
+		      </form>
+          `;
+					this.shadowRoot.appendChild(template.content.cloneNode(true));
+				}
+			}
+
+			window.customElements.define('email-form-component', UiForm);
+      window.customElements.define('password-form-component', PasswordUiForm);
+		</script>
+	</head>
+
+	<body>
+		<form>
+			<h1>Static DOM</h1>
+			<p>Form is in the DOM:</p>
+			<input name="email" type="text" placeholder="DOM" autocomplete="webauthn" />
+			<button type="submit">Click</button>
+		</form>
+    <form>
+			<h1>Static DOM with password</h1>
+			<p>Form is in the DOM with a password field:</p>
+			<input name="email" type="text" placeholder="DOM" autocomplete="webauthn" />
+      <input name="password" type="password" placeholder="" autocomplete="webauthn" />
+			<button type="submit">Click</button>
+		</form>
+		<email-form-component></email-form-component>
+    <password-form-component></password-form-component>
+    <form id="dynamic-form">
+      
+    </form>
+    
+    <script>
+      document.getElementById("dynamic-form").innerHTML = `
+        <h1>Dynamic DOM</h1>
+        <p>Form is in the DOM, dynamically generated:</p>
+        <input name="email" type="text" placeholder="DOM" autocomplete="webauthn" />
+        <button type="submit">Click</button>
+      `;
+    </script>
+	</body>
+</html>

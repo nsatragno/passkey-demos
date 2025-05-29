@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- 
+      This is an HTML comment
+      You can write text in a comment and the content won't be visible in the page
+    -->
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="https://glitch.com/favicon.ico" />
+
+    <!--
+      This is the page head - it contains info the browser uses
+      Like the title, which appears on the browser tab but not inside the page
+      Further down you'll see the content that displays in the page
+    -->
+    <title>Hello World!</title>
+
+    <!-- The website stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- The website JavaScript file -->
+    <script src="/script.js" defer></script>
+  </head>
+  <body>
+    <!--
+      The body includes the content you see in the page
+      Each element is defined using tags, like this <div></div>
+      The attributes like class="wrapper" let us style elements in the CSS
+    -->
+    <div class="wrapper">
+      <div class="content" role="main">
+        <h1>(Legacy) federated credentials demo</h1>
+        <div id="result"></div>
+        <form>
+          <h2>Credential attributes</h2>
+          <div>
+            <label for="id">ID: </label>
+            <input type="id" value="hmiku" name="id" id="id" />
+          </div>
+          <div>
+            <label for="name">Name: </label>
+            <input type="text" value="Hatsune Miku" name="name" id="name" />
+          </div>
+          <div>
+            <label for="provider">Provider: </label>
+            <input
+              type="text"
+              value="https://nyan.example.com"
+              name="provider"
+              id="provider"
+            />
+          </div>
+          <div>
+            <label for="icon">Icon URL: </label>
+            <input
+              type="text"
+              value="https://ec.crypton.co.jp/img/special/vocaloid/img_MIKU_us.png"
+              name="icon"
+              id="icon"
+            />
+          </div>
+          <br>
+          <button class="btn" id="button" style="width: 100%">Create credential</button>
+        </form>
+        
+        <form>
+          <h2>Sample sign in form!</h2>
+          <div>
+            <label for="username">Username: </label>
+            <input type="text" value="hmiku" name="username" id="username" />
+          </div>
+          <div>  
+            <label for="password">Password: </label>
+            <input type="password" value="lalalala" name="password" id="password" />
+          </div>
+          <button class="submit" id="submit" style="width: 100%">"Sign in" (submits the form)</button>
+        </form>
+      </div>
+    </div>
+    <!-- The footer holds our remix button — you can keep or delete it ✂ -->
+    <footer class="footer">
+      <div class="links"></div>
+      <a
+        class="btn--remix"
+        target="_top"
+        href="https://glitch.com/edit/#!/remix/glitch-hello-website"
+      >
+        <img
+          src="https://cdn.glitch.com/605e2a51-d45f-4d87-a285-9410ad350515%2FLogo_Color.svg?v=1618199565140"
+          alt=""
+        />
+        Remix on Glitch
+      </a>
+    </footer>
+  </body>
+</html>
