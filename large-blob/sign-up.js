@@ -32,7 +32,12 @@ document.getElementById("create-account").addEventListener("submit", event => {
     console.log(credential);
     console.log(credential.getClientExtensionResults());
     window.localStorage.credentialId = arrayBufferToBase64(credential.rawId);
-    showMessage("Credential successfully created! Try logging in.");
+    let message = "Credential successfully created! Try logging in.";
+    const extensions = credential.getClientExtensionResults();
+    if (!extensions.largeBlob?.supported) {
+      message += "\nYour authenticator does not support large blobs.";
+    }
+    showMessage(message);
     document.getElementById("create-account").style.display = "none";
   }).catch(error => {
     showError(error.toString());
