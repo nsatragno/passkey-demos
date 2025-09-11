@@ -179,7 +179,7 @@ const AAGUIDS = {
   },
 };
 
-if (!window.location.href.startsWith("https")) {
+if (!window.location.href.startsWith("https") && !window.location.href.includes("localhost")) {
   window.location.href = window.location.href.replace("http", "https");
 }
 

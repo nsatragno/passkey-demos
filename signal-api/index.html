@@ -54,32 +54,18 @@
     </div>
     <div class="frame">
       <h3>Demo instructions</h3>
-      <p>
-        Please run this demo on the latest
-        <a href="https://www.google.com/intl/en_ca/chrome/canary/">Canary</a>
-        desktop version of Chrome. For now, only Google Password Manager
-        passkeys are supported.
-
-        <a href="https://developer.chrome.com/docs/devtools/webauthn/"
-          >WebAuthn Devtools</a
-        >
-        support is coming soon.
-      </p>
       <p>Requirements:</p>
-
       <ul>
         <li>
           <a href="https://www.google.com/intl/en_ca/chrome/canary/"
-            >Chrome Canary</a
-          >
+            >Chrome, ideally Canary for the latest version</a>.
         </li>
-        <li>A Google account</li>
         <li>
           Either of these:
           <ul>
-            <li>A Windows machine with a TPM</li>
-            <li>A Mac</li>
-            <li>A Linux machine</li>
+            <li>Being signed in to your Google account (recommended).</li>
+            <li>Setting up a virtual authenticator with <a href="https://developer.chrome.com/docs/devtools/webauthn/">WebAuthn
+                Devtools</a>.
           </ul>
         </li>
       </ul>
@@ -88,15 +74,32 @@
 
       <ol>
         <li>
-          Enable the web platform experimental features flag
-          (chrome://flags/#enable-experimental-web-platform-features) and
-          restart Chrome.
+          <p>(Optional, but recommended): Run Chrome with
+            <code>--enable-features=WebAuthenticationSignalApiHidePasskeys</code>.
+          </p>
+          <p><em>This makes the browser hide passkeys instead of permanentely deleting them. Hidden passkeys are deleted after
+              about
+              30 days and show up on the password manager UI. The site can restore those passkeys, which could be useful if they got
+              deleted by accident.</em></p>
         </li>
-        <li>Sign in to Chrome with a Google account.</li>
-        <li>
-          When creating a passkey, choose "Google Password Manager" and follow
-          instructions.
-        </li>
+        <li>Set up your authenticator:</li>
+        <ul>
+          <li><strong>Google Password Manager</strong></li>
+          <ol>
+            <li>Sign in to Chrome with a Google account.</li>
+            <li>
+              When creating a passkey, choose "Google Password Manager" and follow
+              instructions.
+            </li>
+          </ol>
+          <li><strong>DevTools:</strong></li>
+          <ol>
+            <li>Open Chrome DevTools.</li>
+            <li>Click the three button menu on the bottom (next to "Console") and select WebAuthn.</li>
+            <li>Click "Enable virtual authenticator environment".</li>
+            <li>Add a virtual authenticator with protocol ctap2, transport internal, supports resident keys true, supports user verification true.</li>
+          </ol>
+        </ul>
         <li>
           Play with the buttons. Here are some things you can try:
           <ul>
@@ -111,22 +114,22 @@
               update your passkeys.
             </li>
             <li>
-              If you delete your account, no signal API calls are made. But if
-              you try to sign in to that account with a passkey for it,
+              If you delete clear local storage and try to sign in,
               <code>signalUnknownCredential</code> is called.
             </li>
+            <li>
+              Try undoing a passkey deletion. If your browser supports it (e.g. Chrome with
+              <code>--enable-features=WebAuthenticationSignalApiHidePasskeys</code>), then it should be restored.
           </ul>
         </li>
       </ol>
       <p>
-        This site is "write-once" and a bit of a test bed. Things are bound to
-        break.
+        This site is a test bed. Things are bound to break.
       </p>
       <p>
         This website doesn't store anything on the server, so you can't try
         signing in with the same passkey from another browser instance. Go use
         <a href="https://webauthn.io">Matt's site</a> if you wanna do that.
-        Still, don't enter any information you wouldn't want me to know (:
       </p>
       <p>
         <i
