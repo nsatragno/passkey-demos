@@ -57,6 +57,10 @@ div.message {
   margin: 5px 0;
 }
 
+button {
+  cursor: pointer;
+}
+
 .button-box {
   text-align: center;
   margin-top: 5px;
