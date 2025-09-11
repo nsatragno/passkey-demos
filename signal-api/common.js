@@ -186,6 +186,7 @@ if (!window.location.href.startsWith("https") && !window.location.href.includes(
 let messageContainer = document.getElementById("message");
 
 function showError(error) {
+  clearMessage();
   console.error(error);
   messageContainer.innerText = error;
   messageContainer.style.display = "block";
@@ -193,6 +194,7 @@ function showError(error) {
 }
 
 function showWarning(message) {
+  clearMessage();
   console.warn(message);
   messageContainer.innerText = message;
   messageContainer.style.display = "block";
@@ -200,10 +202,19 @@ function showWarning(message) {
 }
 
 function showMessage(message) {
+  clearMessage();
   console.info(message);
   messageContainer.innerText = message;
   messageContainer.style.display = "block";
   messageContainer.className = "message";
+}
+
+function clearMessage() {
+  let passkeyDeletedAlert = document.getElementById("passkey-deleted-alert");
+  if (passkeyDeletedAlert) {
+    passkeyDeletedAlert.style.display = "none";
+  }
+  messageContainer.style.display = "none";
 }
 
 function base64ToBase64Url(input) {

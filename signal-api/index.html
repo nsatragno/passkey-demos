@@ -124,6 +124,14 @@
         </li>
       </ol>
       <p>
+        <h3>Important note</h3> This site offers an "Undo" option specifically to help test restoring passkeys. However,
+        relying parties should NOT generally support restoring after signalling that a passkey was deleted, since there is no
+        way to know if an authenticator supports restoring passkeys in advance. The restore functionality is offered by browsers
+        as a way to provide a recovery path in case the signal API is misused and user passkeys are deleted accidentally.
+
+        Do not rely on the restore functionality being available.
+      </p>
+      <p>
         This site is a test bed. Things are bound to break.
       </p>
       <p>

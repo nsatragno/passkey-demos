@@ -1,4 +1,5 @@
 let userData;
+let lastDeletedPasskey;
 
 function addPasskey(event) {
   event.preventDefault();
@@ -135,12 +136,23 @@ function addPasskeyRow(passkeyIndex, passkey) {
   passkeyTableBody.append(tr);
 }
 
-function removePasskey(passkeyIndex) {
-  if (userData[localStorage.currentUser].passkeys.length <= 1) {
-    showMessage(
-      "That was your last passkey! Make sure you add another one before you sign out"
-    );
+function undoDeletePasskey() {
+  if (!lastDeletedPasskey) {
+    showError("Tried to undo deletion but no last deleted passkey");
+    return;
   }
+  userData[localStorage.currentUser].passkeys.push(lastDeletedPasskey);
+  localStorage.users = JSON.stringify(userData);
+  addPasskeyRow(userData[localStorage.currentUser].passkeys.length - 1, lastDeletedPasskey)
+  lastDeletedPasskey = null;
+  showMessage("Passkey restored (but may not work if restoring is not supported)");
+  signalCurrentCredentials();
+}
+
+function removePasskey(passkeyIndex) {
+  clearMessage();
+  document.getElementById("passkey-deleted-alert").style.display = "block";
+  lastDeletedPasskey = userData[localStorage.currentUser].passkeys[passkeyIndex];
   userData[localStorage.currentUser].passkeys.splice(passkeyIndex, 1);
   localStorage.users = JSON.stringify(userData);
   document
@@ -157,6 +169,7 @@ document
   .getElementById("change-username-button")
   .addEventListener("click", changeUsername);
 document.getElementById("add-passkey").addEventListener("click", addPasskey);
+document.getElementById("undo-delete-passkey").addEventListener("click", undoDeletePasskey);
 
 function load() {
   if (!localStorage.currentUser) {
