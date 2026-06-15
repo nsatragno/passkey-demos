@@ -14,8 +14,8 @@
     </style>
 </head>
 <body>
-    <h2>hmac-secret Extension Test (Platform/Windows Hello)</h2>
-    <p>This script targets <code>authenticatorAttachment: "platform"</code> and <code>residentKey: "required"</code> to trigger Windows Hello.</p>
+    <h2>hmac-secret Extension Test</h2>
+    <p>This tests the CTAP2.0 <code>hmac-secret</code> extension (using <code>hmacCreateSecret</code> on creation, and <code>hmacGetSecret</code> on assertion). <em>Note: Your authenticator must support this extension and user verification (e.g., a PIN or biometric) is usually required.</em></p>
     
     <div class="buttons">
         <button id="btn-create">1. Create Credential (hmacCreateSecret)</button>
@@ -32,6 +32,7 @@
 
         let savedCredentialId = null;
 
+        // Simple logging utility
         function log(message) {
             console.log(message);
             if (typeof message === 'object') {
@@ -41,6 +42,7 @@
             logEl.scrollTop = logEl.scrollHeight;
         }
 
+        // Utility to convert ArrayBuffer to Hex string for easy reading
         function bufferToHex(buffer) {
             return Array.from(new Uint8Array(buffer))
                 .map(b => b.toString(16).padStart(2, '0'))
@@ -50,6 +52,7 @@
         btnCreate.addEventListener('click', async () => {
             log("--- Starting Registration (hmacCreateSecret) ---");
             try {
+                // 32-byte challenge & 16-byte user ID
                 const challenge = crypto.getRandomValues(new Uint8Array(32));
                 const userId = crypto.getRandomValues(new Uint8Array(16));
 
@@ -67,11 +70,11 @@
                             { type: "public-key", alg: -257 }  // RS256
                         ],
                         authenticatorSelection: {
-                            authenticatorAttachment: "platform", // Target Windows Hello
-                            residentKey: "required",             // Store on device
-                            userVerification: "required"         // Mandatory for hmac-secret
+                            userVerification: "preferred",
+                            residentKey: "discouraged"
                         },
                         extensions: {
+                            // The create-only extension declaration
                             hmacCreateSecret: true
                         }
                     }
@@ -88,23 +91,23 @@
                     savedCredentialId = credential.rawId;
                     btnGet.disabled = false;
                 } else {
-                    log("❌ WARNING: Authenticator did NOT return hmacCreateSecret.");
+                    log("❌ WARNING: Authenticator did NOT return hmacCreateSecret. It may not be supported.");
                 }
             } catch (err) {
                 log("Error during creation: " + err.message);
-                console.error(err);
             }
         });
 
         btnGet.addEventListener('click', async () => {
             log("\n--- Starting Assertion (hmacGetSecret) ---");
             if (!savedCredentialId) {
-                log("No credential ID saved.");
+                log("No credential ID saved. Run creation first.");
                 return;
             }
 
             try {
                 const challenge = crypto.getRandomValues(new Uint8Array(32));
+                // Provide a random 32-byte salt for the authenticator to hash
                 const salt1 = crypto.getRandomValues(new Uint8Array(32));
                 
                 log("Generated Salt 1 (Hex): " + bufferToHex(salt1));
@@ -119,7 +122,7 @@
                         userVerification: "required",
                         extensions: {
                             hmacGetSecret: {
-                                salt1: salt1.buffer
+                                salt1: salt1.buffer // Must pass the ArrayBuffer
                             }
                         }
                     }
@@ -134,11 +137,11 @@
                     log("HMAC Output 1 (Hex): " + outputHex);
                 } else {
                     log("❌ WARNING: Authenticator did not return hmacGetSecret data.");
+                    log("Extension Results:");
                     log(extResults);
                 }
             } catch (err) {
                 log("Error during assertion: " + err.message);
-                console.error(err);
             }
         });
     </script>
