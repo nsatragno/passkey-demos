@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hmac-secret WebAuthn Test</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+        .buttons { margin: 20px 0; display: flex; gap: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; }
+        button:hover:not(:disabled) { background: #e2e6ea; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; overflow-x: auto; min-height: 200px; }
+    </style>
+</head>
+<body>
+    <h2>hmac-secret Extension Test (Platform/Windows Hello)</h2>
+    <p>This script targets <code>authenticatorAttachment: "platform"</code> and <code>residentKey: "required"</code> to trigger Windows Hello.</p>
+    
+    <div class="buttons">
+        <button id="btn-create">1. Create Credential (hmacCreateSecret)</button>
+        <button id="btn-get" disabled>2. Get Secret (hmacGetSecret)</button>
+    </div>
+
+    <h3>Log Output</h3>
+    <pre id="log"></pre>
+
+    <script>
+        const btnCreate = document.getElementById('btn-create');
+        const btnGet = document.getElementById('btn-get');
+        const logEl = document.getElementById('log');
+
+        let savedCredentialId = null;
+
+        function log(message) {
+            console.log(message);
+            if (typeof message === 'object') {
+                message = JSON.stringify(message, null, 2);
+            }
+            logEl.textContent += message + '\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function bufferToHex(buffer) {
+            return Array.from(new Uint8Array(buffer))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        btnCreate.addEventListener('click', async () => {
+            log("--- Starting Registration (hmacCreateSecret) ---");
+            try {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const userId = crypto.getRandomValues(new Uint8Array(16));
+
+                const createOptions = {
+                    publicKey: {
+                        rp: { name: "HMAC-Secret Test App" },
+                        user: {
+                            id: userId,
+                            name: "testuser@example.com",
+                            displayName: "Test User"
+                        },
+                        challenge: challenge,
+                        pubKeyCredParams: [
+                            { type: "public-key", alg: -7 },   // ES256
+                            { type: "public-key", alg: -257 }  // RS256
+                        ],
+                        authenticatorSelection: {
+                            authenticatorAttachment: "platform", // Target Windows Hello
+                            residentKey: "required",             // Store on device
+                            userVerification: "required"         // Mandatory for hmac-secret
+                        },
+                        extensions: {
+                            hmacCreateSecret: true
+                        }
+                    }
+                };
+
+                const credential = await navigator.credentials.create(createOptions);
+                
+                const extResults = credential.getClientExtensionResults();
+                log("Extension Results:");
+                log(extResults);
+
+                if (extResults.hmacCreateSecret) {
+                    log("✅ SUCCESS: Authenticator returned hmacCreateSecret: true");
+                    savedCredentialId = credential.rawId;
+                    btnGet.disabled = false;
+                } else {
+                    log("❌ WARNING: Authenticator did NOT return hmacCreateSecret.");
+                }
+            } catch (err) {
+                log("Error during creation: " + err.message);
+                console.error(err);
+            }
+        });
+
+        btnGet.addEventListener('click', async () => {
+            log("\n--- Starting Assertion (hmacGetSecret) ---");
+            if (!savedCredentialId) {
+                log("No credential ID saved.");
+                return;
+            }
+
+            try {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const salt1 = crypto.getRandomValues(new Uint8Array(32));
+                
+                log("Generated Salt 1 (Hex): " + bufferToHex(salt1));
+
+                const getOptions = {
+                    publicKey: {
+                        challenge: challenge,
+                        allowCredentials: [{
+                            type: "public-key",
+                            id: savedCredentialId
+                        }],
+                        userVerification: "required",
+                        extensions: {
+                            hmacGetSecret: {
+                                salt1: salt1.buffer
+                            }
+                        }
+                    }
+                };
+
+                const assertion = await navigator.credentials.get(getOptions);
+                const extResults = assertion.getClientExtensionResults();
+                
+                if (extResults.hmacGetSecret && extResults.hmacGetSecret.output1) {
+                    log("✅ SUCCESS: hmacGetSecret returned an output!");
+                    const outputHex = bufferToHex(extResults.hmacGetSecret.output1);
+                    log("HMAC Output 1 (Hex): " + outputHex);
+                } else {
+                    log("❌ WARNING: Authenticator did not return hmacGetSecret data.");
+                    log(extResults);
+                }
+            } catch (err) {
+                log("Error during assertion: " + err.message);
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
