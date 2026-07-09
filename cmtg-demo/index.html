@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebAuthn CMTG Keys Demo</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <div class="frame">
+    <h1>WebAuthn CMTG Keys Demo</h1>
+    <div id="support-banner" class="info-banner">Checking browser capabilities...</div>
+    
+    <div id="share-controls" style="margin-top: 15px;">
+      <button id="copy-share-btn">🔗 Copy Shareable Link</button>
+      <button id="clear-db-btn" style="float: right;">🗑️ Clear Local DB</button>
+      <div style="clear: both;"></div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <h2>Instructions</h2>
+    <p>To test this CMTG Keys demo, you must enable the feature flags in your browser. For Chrome, run it from the command line with:</p>
+    <code style="background-color: rgb(233, 223, 245); padding: 8px; display: block; white-space: pre-wrap; word-break: break-all; border: 1px solid rgb(224, 197, 255);">--enable-blink-features=WebAuthenticationCmtgKey --enable-features=WebAuthnEnclaveUseAuthDataFromEnclave</code>
+    <p>You can verify if the feature is enabled by looking at the support status banner above.</p>
+  </div>
+
+  <div class="frame">
+    <h2>1. Create Credential (Register)</h2>
+    <form id="register-form" onsubmit="return false;">
+      <div style="margin-bottom: 10px;">
+        <label for="reg-username">Username: </label>
+        <input type="text" id="reg-username" value="marisa" required />
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>
+          <input type="checkbox" id="reg-cmtg" checked />
+          Request CMTG Key (<code>cmtgKey: true</code>)
+        </label>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>
+          <input type="checkbox" id="reg-platform" checked />
+          Only use platform authenticator (<code>authenticatorAttachment: "platform"</code>)
+        </label>
+      </div>
+      <button id="register-btn">Register Passkey</button>
+    </form>
+  </div>
+
+  <div class="frame">
+    <h2>2. Get Assertion (Authenticate)</h2>
+    <form id="login-form" onsubmit="return false;">
+      <div style="margin-bottom: 10px;">
+        <label for="login-username">Select User: </label>
+        <select id="login-username">
+          <option value="">-- Select Registered User --</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>
+          <input type="checkbox" id="login-cmtg" checked />
+          Request CMTG Key (<code>cmtgKey: true</code>)
+        </label>
+      </div>
+      <button id="login-btn">Authenticate</button>
+    </form>
+  </div>
+
+  <div class="frame">
+    <h2>Registered Credentials</h2>
+    <div id="no-credentials" class="info-banner" style="text-align: center;">
+      No credentials registered yet.
+    </div>
+    <table id="credentials-table" style="display: none;">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Credential ID</th>
+          <th>Public Key</th>
+          <th>CMTG Key Records</th>
+        </tr>
+      </thead>
+      <tbody id="credentials-list"></tbody>
+    </table>
+  </div>
+
+  <div class="frame">
+    <h2>System Log</h2>
+
+    <div id="console" class="console"></div>
+  </div>
+
+  <div class="disclaimer">
+    Warning: This site was vibecoded by an AI coding assistant. Proceed with absolute lack of caution.
+  </div>
+</body>
+</html>

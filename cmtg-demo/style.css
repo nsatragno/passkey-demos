@@ -1,0 +1,148 @@
+body {
+  background-color: rgb(245, 236, 255);
+  font-family: sans-serif;
+  color: rgb(38, 0, 128);
+}
+
+.frame {
+  background-color: rgb(243, 233, 255);
+  border: 1px solid rgb(224, 197, 255);
+  max-width: 700px;
+  margin: auto;
+  padding: 16px 32px;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 1em;
+}
+
+button {
+  border: 1px solid rgb(38, 0, 128);
+  background-color: rgb(233, 223, 245);
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: rgb(243, 233, 255);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type="text"] {
+  padding: 6px;
+  border: 1px solid rgb(224, 197, 255);
+  background-color: white;
+  color: rgb(38, 0, 128);
+}
+
+.error-banner {
+  color: red;
+  background-color: #ffdddd;
+  border: red 1px solid;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.success-banner {
+  color: green;
+  background-color: #ddffdd;
+  border: green 1px solid;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.info-banner {
+  color: blue;
+  background-color: #ddddff;
+  border: blue 1px solid;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+table {
+  border: 1px solid rgb(224, 197, 255);
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 10px;
+}
+
+table th, table td {
+  border: 1px solid rgb(224, 197, 255);
+  padding: 8px;
+  text-align: left;
+}
+
+table th {
+  background-color: rgb(233, 223, 245);
+}
+
+.console {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: monospace;
+  padding: 12px;
+  border-radius: 4px;
+  max-height: 250px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.console-log {
+  margin: 2px 0;
+}
+
+.console-error {
+  color: #f14c4c;
+}
+
+.console-success {
+  color: #4fc1ff;
+}
+
+.console-info {
+  color: #b5cea8;
+}
+
+.disclaimer {
+  font-size: 0.85em;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+  opacity: 0.8;
+}
+
+.key-list {
+  font-size: 0.9em;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.key-item {
+  margin-bottom: 4px;
+}
+
+.truncated-key {
+  font-family: monospace;
+  cursor: pointer;
+  border-bottom: 1px dotted;
+}
