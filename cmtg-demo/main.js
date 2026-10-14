@@ -446,8 +446,8 @@ async function registerPasskey() {
   }
   
   if (requestCmtg) {
-    options.publicKey.extensions.cmtgKey = true;
-    logInfo("Requesting CMTG Key extension (cmtgKey: true)");
+    options.publicKey.extensions.cmtgKeys = true;
+    logInfo("Requesting CMTG Keys extension (cmtgKeys: true)");
   }
   
   try {
@@ -471,10 +471,15 @@ async function registerPasskey() {
     const clientOutputs = credJSON.clientExtensionResults || {};
     const cmtgRecords = [];
     
-    if (clientOutputs.cmtgKey) {
-      logSuccess("CMTG Key returned by authenticator!");
-      logInfo(`CMTG Public Key: ${clientOutputs.cmtgKey.cmtgKey}`);
-      logInfo(`CMTG Signature: ${clientOutputs.cmtgKey.signature}`);
+    if (Array.isArray(clientOutputs.cmtgKeys) && clientOutputs.cmtgKeys.length > 0) {
+      logSuccess(`${clientOutputs.cmtgKeys.length} CMTG Key(s) returned by authenticator!`);
+      if (clientOutputs.cmtgKeys.length > 1) {
+        logInfo("Only the first CMTG key will be used; the rest are ignored.");
+      }
+      // This demo only looks at the first CMTG key.
+      const cmtgOutput = clientOutputs.cmtgKeys[0];
+      logInfo(`CMTG Public Key: ${cmtgOutput.cmtgKey}`);
+      logInfo(`CMTG Signature: ${cmtgOutput.signature}`);
       
       // Verify CMTG signature
       logInfo("Verifying CMTG signature...");
@@ -482,12 +487,12 @@ async function registerPasskey() {
         const verified = await verifyCmtgSignature(
           new Cbor(attObjBuffer).getCBOR().authData,
           credJSON.response.clientDataJSON,
-          clientOutputs.cmtgKey
+          cmtgOutput
         );
         if (verified) {
           logSuccess("[CMTG Verification] CMTG Signature verified successfully! Trust group authenticated.");
           cmtgRecords.push({
-            publicKey: clientOutputs.cmtgKey.cmtgKey,
+            publicKey: cmtgOutput.cmtgKey,
             lastUsed: Date.now()
           });
         } else {
@@ -497,7 +502,7 @@ async function registerPasskey() {
         logError("Error verifying CMTG signature: " + err.message);
       }
     } else if (requestCmtg) {
-      logInfo("CMTG Key was requested but not returned by authenticator.");
+      logInfo("CMTG Keys were requested but none were returned by authenticator.");
     }
     
     // Add to DB
@@ -551,8 +556,8 @@ async function authenticatePasskey() {
   };
   
   if (requestCmtg) {
-    options.publicKey.extensions.cmtgKey = true;
-    logInfo("Requesting CMTG Key extension (cmtgKey: true)");
+    options.publicKey.extensions.cmtgKeys = true;
+    logInfo("Requesting CMTG Keys extension (cmtgKeys: true)");
   }
   
   try {
@@ -573,10 +578,15 @@ async function authenticatePasskey() {
     
     // Check CMTG extension output
     const clientOutputs = assertionJSON.clientExtensionResults || {};
-    if (clientOutputs.cmtgKey) {
-      logSuccess("CMTG Key returned by authenticator during authentication!");
-      logInfo(`CMTG Public Key: ${clientOutputs.cmtgKey.cmtgKey}`);
-      logInfo(`CMTG Signature: ${clientOutputs.cmtgKey.signature}`);
+    if (Array.isArray(clientOutputs.cmtgKeys) && clientOutputs.cmtgKeys.length > 0) {
+      logSuccess(`${clientOutputs.cmtgKeys.length} CMTG Key(s) returned by authenticator during authentication!`);
+      if (clientOutputs.cmtgKeys.length > 1) {
+        logInfo("Only the first CMTG key will be used; the rest are ignored.");
+      }
+      // This demo only looks at the first CMTG key.
+      const cmtgOutput = clientOutputs.cmtgKeys[0];
+      logInfo(`CMTG Public Key: ${cmtgOutput.cmtgKey}`);
+      logInfo(`CMTG Signature: ${cmtgOutput.signature}`);
       
       // Verify CMTG signature
       logInfo("Verifying CMTG signature...");
@@ -584,21 +594,21 @@ async function authenticatePasskey() {
         const verified = await verifyCmtgSignature(
           base64UrlToBuffer(assertionJSON.response.authenticatorData),
           assertionJSON.response.clientDataJSON,
-          clientOutputs.cmtgKey
+          cmtgOutput
         );
         
         if (verified) {
           logSuccess("[CMTG Verification] CMTG Signature verified successfully!");
           
           // Check if CMTG key is already known
-          const existingRecord = credentialRecord.cmtgKeyRecords.find(r => r.publicKey === clientOutputs.cmtgKey.cmtgKey);
+          const existingRecord = credentialRecord.cmtgKeyRecords.find(r => r.publicKey === cmtgOutput.cmtgKey);
           if (existingRecord) {
             logSuccess("Known trust group detected. Updating timestamp.");
             existingRecord.lastUsed = Date.now();
           } else {
             logInfo("New trust group detected! Adding to credential record.");
             credentialRecord.cmtgKeyRecords.push({
-              publicKey: clientOutputs.cmtgKey.cmtgKey,
+              publicKey: cmtgOutput.cmtgKey,
               lastUsed: Date.now()
             });
           }
@@ -610,7 +620,7 @@ async function authenticatePasskey() {
         logError("Error verifying CMTG signature: " + err.message);
       }
     } else if (requestCmtg) {
-      logInfo("CMTG Key was requested but not returned by authenticator.");
+      logInfo("CMTG Keys were requested but none were returned by authenticator.");
     }
     
   } catch (err) {
@@ -723,14 +733,14 @@ async function initSupportCheck() {
   try {
     const caps = await PublicKeyCredential.getClientCapabilities();
     logInfo("Client capabilities: " + JSON.stringify(caps));
-    if (caps['extension:cmtgKey']) {
+    if (caps['extension:cmtgKeys']) {
       banner.className = "success-banner";
-      banner.textContent = "✅ CMTG Key extension is supported by this browser!";
-      logSuccess("CMTG Key extension (extension:cmtgKey) is supported.");
+      banner.textContent = "✅ CMTG Keys extension is supported by this browser!";
+      logSuccess("CMTG Keys extension (extension:cmtgKeys) is supported.");
     } else {
       banner.className = "error-banner";
-      banner.textContent = "❌ CMTG Key extension (extension:cmtgKey) is NOT supported by this browser.";
-      logError("CMTG Key extension (extension:cmtgKey) is NOT supported.");
+      banner.textContent = "❌ CMTG Keys extension (extension:cmtgKeys) is NOT supported by this browser.";
+      logError("CMTG Keys extension (extension:cmtgKeys) is NOT supported.");
     }
   } catch (err) {
     banner.className = "error-banner";
