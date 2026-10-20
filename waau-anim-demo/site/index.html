@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upgrading Passkeys to Post‑Quantum · WebAuthn Algorithm Upgrades, Animated</title>
+  <meta name="description" content="An animated, visual walkthrough of the WebAuthn algorithm upgrade proposal: how relying parties can move existing passkeys and security key credentials to post-quantum algorithms like ML-DSA in a single sign-in, and recover when an upgrade gets lost.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/gh/bitmaks/cm-web-fonts@latest/fonts.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+
+  <nav class="rail" aria-label="Chapters">
+    <ol>
+      <li><a href="#problem" data-n="1">The problem</a></li>
+      <li><a href="#naive" data-n="2">The obvious approach</a></li>
+      <li><a href="#backups" data-n="3">Keeping a backup</a></li>
+      <li><a href="#cleanup" data-n="4">The cleanup rule</a></li>
+      <li><a href="#upgrade" data-n="5">algUpgrade</a></li>
+      <li><a href="#lost" data-n="6">Lost upgrades</a></li>
+      <li><a href="#extensions" data-n="7">What carries over</a></li>
+      <li><a href="#security-keys" data-n="8">Security keys</a></li>
+      <li><a href="#trust" data-n="9">Timing &amp; trust</a></li>
+      <li><a href="#alternatives" data-n="10">Roads not taken</a></li>
+      <li><a href="#recap" data-n="11">Recap</a></li>
+    </ol>
+  </nav>
+
+  <header class="hero">
+    <div class="prose">
+      <p class="eyebrow">WebAuthn · Post-quantum migration</p>
+      <h1>Upgrading passkeys to post&#8209;quantum, one sign&#8209;in at a time</h1>
+      <p class="lede">
+        A visual walkthrough of the <em>Web Authentication Algorithm Upgrades</em> proposal: how a relying party
+        can swap the key inside a credential the user already has for a post-quantum one, without asking
+        anyone to re-register, and how to recover when an upgrade gets lost on the way.
+      </p>
+      <div class="legend" aria-label="Legend">
+        <span><svg viewBox="-30 -14 60 28" class="k" aria-hidden="true"><circle cx="-15" cy="0" r="10" fill="#58C4DD" fill-opacity=".15" stroke="#58C4DD" stroke-width="3.5"/><circle cx="-15" cy="0" r="3" fill="#58C4DD"/><path d="M -4 0 H 26 M 17 0 V 8 M 23 0 V 6" stroke="#58C4DD" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg> classical credential, e.g. ECDSA</span>
+        <span><svg viewBox="-30 -14 60 28" class="k" aria-hidden="true"><circle cx="-15" cy="0" r="10" fill="#F4D345" fill-opacity=".15" stroke="#F4D345" stroke-width="3.5"/><circle cx="-15" cy="0" r="3" fill="#F4D345"/><path d="M -4 0 H 26 M 17 0 V 8 M 23 0 V 6" stroke="#F4D345" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg> post-quantum credential, e.g. ML-DSA-44</span>
+      </div>
+      <p class="source">Based on the design doc <a href="http://goto.google.com/waau">go/waau</a> by Nina Satragno,
+        with contributions from Martin Kreichgauer and the W3C WebAuthn WG. Status: under review.
+        Every animation can be paused, scrubbed and replayed. Click it or press <kbd>space</kbd>.</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1 ------------------------------------------------------------ -->
+    <section class="chapter" id="problem">
+      <div class="prose">
+        <p class="eyebrow">Chapter 1</p>
+        <h2>The problem</h2>
+        <p>
+          Every credential WebAuthn has ever produced uses a classical signature algorithm. That's billions of
+          passkeys synced by passkey providers, and billions more bound to the hardware of security keys.
+          A cryptographically relevant quantum computer would make all of those signatures forgeable.
+        </p>
+      </div>
+      <figure class="stage" data-scene="threat" aria-label="Animation: classical keys breaking under a quantum threat, and post-quantum keys surviving"></figure>
+      <div class="prose">
+        <p>Credentials can't just be re-issued in bulk: each one belongs to one user, one relying party, and often one piece
+          of hardware. The proposal sets out these goals:</p>
+        <ul class="goals">
+          <li>Relying parties get a way to <strong>migrate credentials</strong> from one algorithm to another.</li>
+          <li>It works for <strong>both kinds of authenticators</strong>: passkey providers, which store credentials in software and sync them, and security keys, which bind credentials to dedicated hardware.</li>
+          <li>A <strong>partial, failed migration can be recovered</strong>.</li>
+          <li><strong>Extensions keep working</strong> after the migration.</li>
+          <li>It is as <strong>transparent</strong> to users as possible.</li>
+        </ul>
+        <p class="aside-note"><span class="label">Out of scope</span> Rotating keys within the same algorithm,
+          composite signatures layered on top of WebAuthn, and letting the RP choose between several pre-agreed keys at sign-in.
+          Any new complexity touches every layer of the ecosystem (RPs, browsers, OS APIs, passkey providers, security keys),
+          so the guiding principle is: <em>the simplest design that meets the goals.</em></p>
+      </div>
+    </section>
+
+    <!-- 2 ------------------------------------------------------------ -->
+    <section class="chapter" id="naive">
+      <div class="prose">
+        <p class="eyebrow">Chapter 2</p>
+        <h2>Why not just <code>get()</code>, then <code>create()</code>?</h2>
+        <p>
+          A relying party can already sign the user in and then immediately ask for a new credential with a
+          post-quantum algorithm. Watch what goes wrong:
+        </p>
+      </div>
+      <figure class="stage" data-scene="naive" aria-label="Animation: the two-ceremony approach and its three problems"></figure>
+      <div class="prose">
+        <p>The proposal splits the problem into <strong>two independent capabilities</strong>, which can be built in parallel:</p>
+        <ol class="caps">
+          <li><span class="cap-n">1</span><div><strong>Backups.</strong> When a new credential replaces an old one,
+            the authenticator keeps the old one around, and the RP can tell when it needs to fall back to it.</div></li>
+          <li><span class="cap-n">2</span><div><strong>Upgrade-in-assertion.</strong> The RP can ask for a new
+            credential <em>as part of</em> a sign-in, so the old key vouches for the new one.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 3 ------------------------------------------------------------ -->
+    <section class="chapter" id="backups">
+      <div class="prose">
+        <p class="eyebrow">Chapter 3 · Capability 1</p>
+        <h2>From one slot to a list</h2>
+        <p>
+          WebAuthn models an authenticator as a <a href="https://w3c.github.io/webauthn/#authenticator-credentials-map">credentials map</a>
+          keyed by <code>{ user id, RP ID }</code>. One key, one credential. That makes replacing a credential risky:
+        </p>
+      </div>
+      <figure class="stage" data-scene="stack" aria-label="Animation: overwriting a credential locks the user out; keeping a list of credentials does not"></figure>
+      <div class="prose">
+        <p>
+          The proposal changes the model so that <code>{ user id, RP ID }</code> maps to a <strong>list of credentials sorted by
+          creation time</strong>. New credentials are appended, and requests with an empty allow-list always return the newest one.
+        </p>
+        <p class="aside-note"><span class="label">Prior art</span> Google Password Manager already does a version of this:
+          it keeps <a href="https://source.chromium.org/chromium/chromium/src/+/main:components/sync/protocol/webauthn_credential_specifics.proto;l=97">shadowed credentials</a>
+          that still answer allow-list requests. That behaviour isn't standard, though, and RPs have no way to reach those credentials from
+          an empty allow-list request. The proposal standardizes a variant of it.</p>
+      </div>
+    </section>
+
+    <!-- 4 ------------------------------------------------------------ -->
+    <section class="chapter" id="cleanup">
+      <div class="prose">
+        <p class="eyebrow">Chapter 4 · Capability 1</p>
+        <h2>The cleanup rule</h2>
+        <p>
+          Backups can't pile up forever, and stale ones shouldn't come back. One rule handles both: an
+          <strong>allow-list</strong> request tells the authenticator which credential the RP actually knows about.
+        </p>
+      </div>
+      <figure class="stage" data-scene="cleanup" aria-label="Animation: allow-list requests select the newest matching credential and erase the others"></figure>
+      <div class="prose">
+        <ul class="rules">
+          <li>On an allow-list request, the authenticator uses the <strong>newest credential that matches</strong>
+            and <strong>erases every other credential</strong> for that <code>{ user id, RP ID }</code>.</li>
+          <li>This applies whenever the authenticator supports it, <em>whether or not</em> the RP requested the extension.</li>
+          <li>Authenticators may also delete old credentials when they need room for new ones.</li>
+        </ul>
+        <p>A new assertion extension reports the backups, so the RP can tell what happened:</p>
+<pre><code data-lang="idl">partial dictionary AuthenticationExtensionsClientInputs {
+  boolean restoreCredentials;
+};
+
+dictionary RestoreCredentialsOutput {
+  sequence&lt;ArrayBuffer&gt; existingCredentials;
+};
+
+// Signed extension outputs.
+$$extensionOutput //= (
+  restoreCredentials: { existingCredentials: [* bstr] }
+)</code></pre>
+        <details class="deep">
+          <summary>Edge cases: stateless credentials, <code>excludeCredentials</code>, and the Signal API</summary>
+          <p><strong>Stateless credentials</strong> (where the credential ID wraps the key) already behave this way:
+            every credential ever issued keeps working. But the authenticator can't list them, so
+            <code>existingCredentials</code> is <code>[]</code>. That's fine, because a stateless credential can
+            only be asserted through an allow-list anyway.</p>
+          <p><strong><code>excludeCredentials</code></strong>: an authenticator is excluded if <em>any</em> of its credentials matches the list, backups included.</p>
+          <p><strong>Signal API</strong>: for backwards compatibility, signals that refer to the newest credential act on the whole list as if it were one credential.</p>
+          <table>
+            <thead><tr><th>Method</th><th>New behaviour</th></tr></thead>
+            <tbody>
+              <tr><td><code>signalCurrentUserDetails</code></td><td>Updates every credential, shadowed ones included.</td></tr>
+              <tr><td><code>signalUnknownCredential</code></td><td>If the ID is the newest credential, the whole list is hidden or erased. If it's a backup, nothing happens (that indicates an RP or authenticator bug).</td></tr>
+              <tr><td><code>signalAllAcceptedCredentials</code></td><td>A second way to recover: the newest credential that's on the list is kept (and un-hidden if needed) and every other credential is erased. If nothing matches, all of the user's credentials are hidden or erased.</td></tr>
+            </tbody>
+          </table>
+        </details>
+      </div>
+    </section>
+
+    <!-- 5 ------------------------------------------------------------ -->
+    <section class="chapter" id="upgrade">
+      <div class="prose">
+        <p class="eyebrow">Chapter 5 · Capability 2</p>
+        <h2>The upgrade happens inside the sign-in</h2>
+        <p>
+          With backups in place, here's the main event. The RP adds an <code>algUpgrade</code> extension
+          to an ordinary <code>navigator.credentials.get()</code> call, listing the algorithms it accepts in order of preference.
+        </p>
+      </div>
+      <figure class="stage" data-scene="upgrade" aria-label="Animation: the algUpgrade ceremony with transfer of trust from credential A to credential B"></figure>
+      <div class="prose">
+        <p>The authenticator picks the <strong>first algorithm in <code>pubKeyCredParams</code> it supports</strong>. Then:</p>
+        <ul class="rules">
+          <li>If it already holds a credential with that algorithm for this user and RP, it returns a normal assertion. Nothing changes.</li>
+          <li>Otherwise it <strong>mints a new credential</strong>, builds its make-credential <code>authenticatorData</code>, and
+            returns a normal assertion <strong>signed by the old credential</strong>, with the new <code>authenticatorData</code> inside the signed extension outputs.</li>
+        </ul>
+        <p>Because the new credential's data is covered by the old signature, <strong>trust transfers</strong> from A to B. Only
+          authenticators that support backups may offer this extension, so a lost upgrade can always be recovered.</p>
+<pre><code data-lang="idl">dictionary AuthenticationExtensionsAlgUpgradeInputs {
+  // Parameters for the new credential.
+  required sequence&lt;PublicKeyCredentialParameters&gt; pubKeyCredParams;
+};
+
+dictionary AuthenticationExtensionsAlgUpgradeOutputs {
+  // Make credential authenticator data.
+  ArrayBuffer authenticatorData;
+};</code></pre>
+        <p>The RP side is small. To move to a new algorithm, the RP edits <code>pubKeyCredParams</code>:</p>
+<pre><code data-lang="js">// client.js: accounts/signin
+const assertion = await navigator.credentials.get({ publicKey: {
+  ...,
+  extensions: {
+    algUpgrade: {
+      pubKeyCredParams: [
+        { alg: -48, type: 'public-key' },  // ML-DSA-44
+        { alg: -7,  type: 'public-key' },  // ECDSA
+      ],
+    },
+  },
+}});
+
+// server.js: webauthn/assert
+// [Validate the assertion as usual.]
+const ext = parseExtensions(assertion.response.authenticatorData);
+const newCredential = ext.algUpgrade?.authenticatorData;
+if (newCredential) {
+  // [Replace the user's credential with the new one.]
+}
+// [Continue with sign in as normal.]</code></pre>
+      </div>
+    </section>
+
+    <!-- 6 ------------------------------------------------------------ -->
+    <section class="chapter" id="lost">
+      <div class="prose">
+        <p class="eyebrow">Chapter 6</p>
+        <h2>When the upgrade gets lost</h2>
+        <p>
+          The risky moment is after the authenticator has minted B and before the server has saved it. Connections drop,
+          tabs close, servers time out. What happens next depends on whether the RP uses allow-lists.
+        </p>
+        <h3>Allow-list flows recover on their own</h3>
+        <p><code>bank.com</code> uses security keys as a second factor, so every request carries an allow-list.</p>
+      </div>
+      <figure class="stage" data-scene="lostBank" aria-label="Animation: an allow-list flow automatically recovers from a lost upgrade"></figure>
+      <div class="prose">
+        <h3>Usernameless flows need one extra round trip</h3>
+        <p><code>shrine.com</code> uses passkeys as a first factor with empty allow-lists. The authenticator returns the newest
+          credential, B, which the server has never seen. This is where <code>existingCredentials</code> comes in.</p>
+      </div>
+      <figure class="stage" data-scene="lostShrine" aria-label="Animation: a usernameless flow uses existingCredentials to recover from a lost upgrade"></figure>
+      <div class="prose">
+        <p><code>existingCredentials</code> lets the RP tell apart two situations that otherwise look the same:
+          <em>"the user deleted this passkey on our account page"</em> and <em>"an upgrade never reached us"</em>.
+          Recovery costs a second ceremony, but only on this rare failure path. Every alternative that avoids it has worse trade-offs (see chapter 10).</p>
+        <p class="aside-note"><span class="label">Dogfooding</span> In empty allow-list flows the RP can't choose which users get upgraded,
+          because the request goes out before it knows who the user is. A workable approach is a cookie that marks devices as eligible for the upgrade.</p>
+      </div>
+    </section>
+
+    <!-- 7 ------------------------------------------------------------ -->
+    <section class="chapter" id="extensions">
+      <div class="prose">
+        <p class="eyebrow">Chapter 7</p>
+        <h2>What carries over to the new credential</h2>
+        <p>
+          A credential is more than a key pair. RPs rely on PRF outputs to decrypt data, on large blobs, on <code>credProtect</code>
+          levels. If any of these changed during an upgrade, the upgrade would break something.
+        </p>
+      </div>
+      <figure class="stage" data-scene="extensions" aria-label="Animation: extension state is copied from credential A to credential B"></figure>
+      <div class="prose">
+        <div class="ext-grid">
+          <div><h4>PRF &amp; hmac-secret</h4><p>Copied, so PRF outputs stay identical. Data the RP encrypted with them stays decryptable.</p></div>
+          <div><h4>largeBlob</h4><p>Copied after any large blob write in the same request. On security keys, the simplest approach is to copy the <code>largeBlobKey</code>.</p></div>
+          <div><h4>credBlob</h4><p>Set once at creation and can't be changed, so it's copied.</p></div>
+          <div><h4>credProtect &amp; third-party payment</h4><p>Copied as-is.</p></div>
+          <div><h4>CMTG keys</h4><p>A CMTG key uses the same algorithm as the credential, so assertions will return a <em>list</em> of keys. If none uses the new algorithm, a new CMTG key is minted and returned next to the old one. Once it has been returned, the old CMTG key can be dropped.</p></div>
+          <div><h4>Nothing to do</h4><p><code>credProps</code>, <code>appId</code>/<code>appIdExclude</code> (U2F devices are not eligible), <code>remoteClientDataJson</code>, <code>minPinLength</code>, <code>pinComplexityPolicy</code>.</p></div>
+        </div>
+        <p class="aside-note"><span class="label">No attestation</span> Credentials created this way can't carry an attestation statement.
+          They don't need one: if the RP trusted the original credential's attestation, it can trust a credential that the original signed.
+          For the same reason, new credentials can't output creation-time extensions. An upgrade can't give a credential capabilities the original didn't have.</p>
+      </div>
+    </section>
+
+    <!-- 8 ------------------------------------------------------------ -->
+    <section class="chapter" id="security-keys">
+      <div class="prose">
+        <p class="eyebrow">Chapter 8</p>
+        <h2>Security keys don't have screens</h2>
+        <p>
+          For passkey providers like Google Password Manager, the change is small: shadowed credentials already exist, and minting
+          a new credential right before returning an assertion is easy. Hardware security keys are more constrained.
+        </p>
+      </div>
+      <figure class="stage" data-scene="seckey" aria-label="Animation: the platform enumerates credentials so the security key only upgrades the selected one"></figure>
+      <div class="prose">
+        <p>CTAP gets a mirror of the extension that <strong>only runs when a request resolves to exactly one credential</strong>.
+          It's proposed to be mandatory in the next CTAP version, along with backups.</p>
+        <details class="deep">
+          <summary>Storage, batching, and memory constraints</summary>
+          <p><strong>Storage.</strong> Keeping backups takes extra space. One way to save it: store a single large source of entropy per
+            (user, RP) and a small random suffix per credential, with credential IDs pointing at an entropy + suffix pair. The suffix accounts for
+            ML-DSA's <a href="https://www.ias.edu/sites/default/files/PCMISlidesX5.pdf">rejection sampling</a> (not every random sample is a valid key) and avoids always rotating to the same key.</p>
+          <p><strong>Allow-list batching.</strong> Platforms probe allow-lists with the <code>UP</code> bit set to zero to narrow them down.
+            If an RP sends several IDs for the same user and authenticator, such a probe could erase the newer credential instead of the older one. The options are to have
+            <code>UP=0</code> requests skip erasing, or to require that RPs never send more than one ID per user and authenticator.</p>
+          <p><strong>Working memory.</strong> If returning a new credential and an assertion from a single command turns out to be too much for small chips, the
+            command can be split into two, with the extension output carrying a hash of the new <code>authenticatorData</code> instead of the full data.</p>
+          <p><strong>Full storage.</strong> A nearly full key might delete a backup before the RP gets a chance to restore it. That takes several rare events at once, but RPs may run into it.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- 9 ------------------------------------------------------------ -->
+    <section class="chapter" id="trust">
+      <div class="prose">
+        <p class="eyebrow">Chapter 9</p>
+        <h2>Upgrade while the old keys are still trusted</h2>
+        <p>
+          Recovery has a quiet assumption built in: when the RP falls back to credential A, it's trusting a classical signature.
+        </p>
+      </div>
+      <figure class="stage" data-scene="timeline" aria-label="Animation: a timeline showing the window in which classical credentials can still be trusted for recovery"></figure>
+      <div class="prose">
+        <p>Once quantum computers are practical, an assertion from an unknown credential that falls back to a classical key could be an
+          attacker trying to downgrade the RP. At that point the safe move is to treat the user as never upgraded and
+          <strong>step them up with another authentication method</strong>. The API doesn't decide which algorithms an RP should trust. That's up to the RP.</p>
+        <p class="aside-note"><span class="label">User handles</span> The design (like the Signal API) assumes each user has a single, unique user handle,
+          as the spec requires (<em>"It is RECOMMENDED to let the user handle be 64 random bytes"</em>). RPs that reuse handles across users are already broken
+          and are explicitly not supported.</p>
+      </div>
+    </section>
+
+    <!-- 10 ----------------------------------------------------------- -->
+    <section class="chapter" id="alternatives">
+      <div class="prose">
+        <p class="eyebrow">Chapter 10</p>
+        <h2>Roads not taken</h2>
+        <p>The main competing proposal is Microsoft's <a href="https://github.com/w3c/webauthn/blob/main/explainers/alg-policy.md"><code>algPolicy</code></a>.
+          It keeps credentials of <em>every</em> algorithm side by side, as insurance in case a new algorithm is broken.</p>
+      </div>
+      <figure class="stage" data-scene="alternatives" aria-label="Animation: comparing the API surface of algPolicy with this proposal"></figure>
+      <div class="prose">
+        <p>The proposal's position is that this insurance is better provided by <strong>hybrid signature schemes</strong>, which are simpler
+          and also guard against unknown weaknesses in new algorithms. It keeps the protocol small.</p>
+      </div>
+      <div class="alts">
+        <article>
+          <h4>Send the new public key on every assertion</h4>
+          <p>The authenticator would attach B's public key, signed by A, to every response, so a lost upgrade fixes itself without a second ceremony.</p>
+          <p class="why"><b>Why not:</b> it makes every assertion bigger and slower to help a tiny fraction of them (about 1 in 70 google.com assertions go unrecognised, and that's a generous upper bound). It also still needs the allow-list cleanup, and the authenticator never learns that a backup was used.</p>
+        </article>
+        <article>
+          <h4>Client-only extension</h4>
+          <p>The browser does a <code>get</code> and then a <code>create</code> by itself, so even today's security keys could work.</p>
+          <p class="why"><b>Why not:</b> there's no transfer of trust, PRF secrets can't be preserved, existing keys need two taps, and stateful credentials on current keys could be lost.</p>
+        </article>
+        <article>
+          <h4>Multiple key slots per credential</h4>
+          <p>One credential ID holds several keys of different algorithms, and assertions return all of the signatures.</p>
+          <p class="why"><b>Why not:</b> it's unclear how it would work for stateless credentials, it breaks on platforms that don't know about the extension, and authenticators would need both single-key and multi-key modes.</p>
+        </article>
+        <article>
+          <h4>Two-step upgrade</h4>
+          <p>Like conditional create: after a sign-in, the RP calls <code>create()</code> and the browser silently mints a credential.</p>
+          <p class="why"><b>Why not:</b> the RP <em>could</em> target specific users, but it can't work for NFC security keys, since nobody holds a key to the reader during a network round trip.</p>
+        </article>
+        <article>
+          <h4>Rely on the Signal API for cleanup</h4>
+          <p>Let <code>signalAllAcceptedCredentials</code> decide when backups are deleted, instead of the authenticator.</p>
+          <p class="why"><b>Why not:</b> no platform supports signals for security keys, NFC keys are gone by the time the signal arrives, and RPs that never call it leave orphaned credentials.</p>
+        </article>
+        <article>
+          <h4>Just a <code>supported</code> flag</h4>
+          <p>An earlier, simpler version of <code>restoreCredentials</code> that only reported support.</p>
+          <p class="why"><b>Why not:</b> the RP couldn't tell "deleted by the user" from "lost upgrade" without tracking deleted credentials, or know whether <em>this</em> authenticator had a backup.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 11 ----------------------------------------------------------- -->
+    <section class="chapter" id="recap">
+      <div class="prose">
+        <p class="eyebrow">Chapter 11</p>
+        <h2>Recap</h2>
+        <ol class="recap">
+          <li><strong>Authenticators keep a list</strong> of credentials per <code>{ user id, RP ID }</code>, newest first for discoverable requests.</li>
+          <li><strong>Allow-lists clean up:</strong> the newest matching credential wins, and every other credential is erased.</li>
+          <li><strong><code>restoreCredentials</code></strong> reports the backup IDs, so RPs can tell a lost upgrade from a deleted passkey.</li>
+          <li><strong><code>algUpgrade</code></strong> mints a credential with the RP's preferred algorithm during a normal assertion, and the old key signs over the new one.</li>
+          <li><strong>Extension state is copied</strong>, so PRF, large blob, credBlob, credProtect and payment all keep working.</li>
+          <li><strong>Security keys</strong> only upgrade a single, user-selected credential, using credential enumeration for usernameless flows.</li>
+          <li><strong>Start early</strong>, while classical algorithms can still be trusted for recovery.</li>
+        </ol>
+        <p class="aside-note"><span class="label">Shipping it</span> The WebAuthn virtual authenticator gains a
+          <code>supportsRestoringCredentials</code> option and an <code>algUpgrade</code> parameter, both shown in DevTools. Chrome will record a
+          <code>kWebAuthnAlgUpgradeExtension</code> use counter and histograms measuring how many security keys support the extension. The extension is opt-in for websites
+          and rolls out through the regular waterfall process.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="prose foot">
+    <p>Animated explainer for <a href="http://goto.google.com/waau">go/waau</a>. Public explainers:
+      <a href="https://github.com/w3c/webauthn/blob/main/explainers/alg-upgrades.md">alg-upgrades</a> ·
+      <a href="https://github.com/w3c/webauthn/blob/main/explainers/simple-pqc-migration.md">simple-pqc-migration</a>.</p>
+  </footer>
+
+  <script src="js/engine.js"></script>
+  <script src="js/kit.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
