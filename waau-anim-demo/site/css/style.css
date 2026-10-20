@@ -241,6 +241,19 @@ td code { white-space: nowrap; }
 .stage button.pp[data-state=replay]::before {
   width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
 }
+.stage button.mute, .stage button.fs { width: 34px; padding: 0; }
+.stage button.mute svg, .stage button.fs svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.stage button.mute[data-muted=true] svg path.sound-wave { opacity: 0; }
+.stage button.mute[data-muted=true] svg line.mute-slash { opacity: 1; }
+.stage button.mute[data-muted=false] svg line.mute-slash { opacity: 0; }
+
+.stage:fullscreen {
+  background: var(--bg); padding: 2vh 4vw; max-width: none; width: 100vw; height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.stage:fullscreen .screen { width: 100%; max-width: 1360px; max-height: 75vh; }
+.stage:fullscreen .caption { font-size: 1.3rem; margin: 18px auto 10px; max-width: 1000px; }
+.stage:fullscreen .controls { width: 100%; max-width: 1360px; }
 .stage .scrub { position: relative; flex: 1; height: 24px; display: flex; align-items: center; }
 .stage .marks { position: absolute; left: 0; right: 0; top: 50%; height: 0; pointer-events: none; }
 .stage .marks i { position: absolute; top: -5px; width: 2px; height: 10px; background: rgba(255,255,255,.22); border-radius: 1px; transform: translateX(-1px); }

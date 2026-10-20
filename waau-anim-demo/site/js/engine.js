@@ -461,10 +461,15 @@
       return new Promise((res, rej) => { this.active = { anims, start, dur, step, res, rej }; });
     }
     wait(s = 1) { return this.play(waitAnim(s)); }
+    sync(targetT) {
+      if (this.t < targetT) return this.wait(targetT - this.t);
+      return Promise.resolve();
+    }
 
     say(html) {
       if (!this.alive()) return;
-      this.marks.push(this.t);
+      const text = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
+      this.marks.push({ t: this.t, html, text });
       this.stage.setCaption(html, this.t < this.target);
     }
 
@@ -628,27 +633,64 @@
       this.timeEl = fig.querySelector('.time');
       this.marksEl = fig.querySelector('.marks');
       this.speedBtn = fig.querySelector('.speed');
+      this.muteBtn = fig.querySelector('.mute');
+      this.fsBtn = fig.querySelector('.fs');
       this.speed = 1;
       this.gen = 0;
       this.ctx = null;
       this.playing = false;
       this.total = 1;
       this.started = false;
+      this.name = fig.dataset.scene;
+      this.muted = false;
+
+      // Audio narration element
+      if (this.name) {
+        this.audio = new Audio(`audio/${this.name}.mp3`);
+        this.audio.preload = 'auto';
+      }
+
       stages.push(this);
 
       this.btn.addEventListener('click', () => this.toggle());
       this.svg.addEventListener('click', () => this.toggle());
       this.range.addEventListener('input', () => {
         this.started = true;
-        this.seek(parseFloat(this.range.value), false);
+        const target = parseFloat(this.range.value);
+        this.seek(target, false);
+        if (this.audio) {
+          try { this.audio.currentTime = Math.min(target, this.audio.duration || target); } catch (e) {}
+        }
       });
       this.speedBtn.addEventListener('click', () => {
         const opts = [1, 1.5, 2, 0.5];
         this.speed = opts[(opts.indexOf(this.speed) + 1) % opts.length];
         this.speedBtn.textContent = `${this.speed}×`;
+        if (this.audio) this.audio.playbackRate = this.speed;
       });
+      if (this.muteBtn) {
+        this.muteBtn.addEventListener('click', () => {
+          this.muted = !this.muted;
+          this.muteBtn.setAttribute('data-muted', String(this.muted));
+          if (this.audio) {
+            this.audio.muted = this.muted;
+            if (!this.muted && this.playing) this.audio.play().catch(() => {});
+          }
+        });
+      }
+      if (this.fsBtn) {
+        this.fsBtn.addEventListener('click', () => {
+          if (!document.fullscreenElement) {
+            this.fig.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+        });
+      }
       fig.addEventListener('keydown', (e) => {
         if (e.key === ' ' || e.key === 'k') { e.preventDefault(); this.toggle(); }
+        if (e.key === 'm') { e.preventDefault(); if (this.muteBtn) this.muteBtn.click(); }
+        if (e.key === 'f') { e.preventDefault(); if (this.fsBtn) this.fsBtn.click(); }
         if (e.key === 'ArrowRight') { e.preventDefault(); this.seek(this.ctx.t + 5, this.playing); }
         if (e.key === 'ArrowLeft') { e.preventDefault(); this.seek(this.ctx.t - 5, this.playing); }
       });
@@ -658,11 +700,13 @@
     async init(at = 0) {
       await this.seek(Infinity, false, true);
       this.total = this.ctx.t;
+      this.cues = this.ctx.marks;
       this.range.max = this.total;
       this.range.step = 0.01;
       if (this.marksEl) {
         this.marksEl.innerHTML = '';
-        for (const t of this.ctx.marks) {
+        for (const m of this.ctx.marks) {
+          const t = typeof m === 'number' ? m : m.t;
           if (t <= 0.01) continue;
           const d = document.createElement('i');
           d.style.left = `${(t / this.total) * 100}%`;
@@ -686,8 +730,27 @@
       this.finished = false;
       this.captionEl.classList.remove('show');
       this._pendingCaption = '';
+
+      if (!dry && this.audio) {
+        try {
+          this.audio.currentTime = Math.min(target, this.audio.duration || target);
+          if (play && !this.muted) {
+            this.audio.playbackRate = this.speed;
+            this.audio.play().catch(() => {});
+          } else {
+            this.audio.pause();
+          }
+        } catch (e) {}
+      }
+
       const p = Promise.resolve(this.build(ctx)).then(() => {
-        if (ctx.alive()) { this.finished = true; this.playing = false; this.flushCaption(); this.ui(); }
+        if (ctx.alive()) {
+          this.finished = true;
+          this.playing = false;
+          if (this.audio) this.audio.pause();
+          this.flushCaption();
+          this.ui();
+        }
       }, (e) => { if (e !== CANCEL) console.error(e); });
       return p;
     }
@@ -712,6 +775,17 @@
       this.started = true;
       if (this.finished) { this.seek(0, true); this.ui(); return; }
       this.playing = !this.playing;
+      if (this.audio) {
+        if (this.playing) {
+          try {
+            this.audio.currentTime = Math.min(this.ctx.t, this.audio.duration || this.ctx.t);
+            this.audio.playbackRate = this.speed;
+            if (!this.muted) this.audio.play().catch(() => {});
+          } catch (e) {}
+        } else {
+          this.audio.pause();
+        }
+      }
       this.ui();
     }
     autoplay() {
@@ -720,12 +794,24 @@
       this.seek(0, true);
       this.ui();
     }
-    pause() { if (this.playing) { this.playing = false; this.ui(); } }
+    pause() {
+      if (this.playing) {
+        this.playing = false;
+        if (this.audio) this.audio.pause();
+        this.ui();
+      }
+    }
 
     tick(dt) {
       const ctx = this.ctx;
       if (!ctx || !this.playing || !ctx.active) return;
       ctx.t += dt * this.speed;
+      if (this.audio && !this.audio.paused && this.audio.duration) {
+        const drift = this.audio.currentTime - ctx.t;
+        if (Math.abs(drift) > 0.4) {
+          try { this.audio.currentTime = ctx.t; } catch (e) {}
+        }
+      }
       const a = ctx.active;
       const elapsed = ctx.t - a.start;
       if (elapsed >= a.dur) {
