@@ -368,6 +368,20 @@ async function verifyAssertionSignature(credentialRecord, assertion) {
   );
 }
 
+// Collects CMTG key outputs from both the new list-based extension
+// (`cmtgKeys`, an array of {cmtgKey, signature}) and the legacy
+// single-key extension (`cmtgKey`, a single {cmtgKey, signature}).
+function getCmtgKeyOutputs(clientOutputs) {
+  const outputs = [];
+  if (Array.isArray(clientOutputs.cmtgKeys)) {
+    outputs.push(...clientOutputs.cmtgKeys);
+  }
+  if (clientOutputs.cmtgKey) {
+    outputs.push(clientOutputs.cmtgKey);
+  }
+  return outputs;
+}
+
 async function verifyCmtgSignature(authDataBuffer, clientDataJsonBase64, cmtgExtensionOutput) {
   const clientDataHash = await crypto.subtle.digest("SHA-256", base64UrlToBuffer(clientDataJsonBase64));
   const authData = new Uint8Array(authDataBuffer);
@@ -447,6 +461,7 @@ async function registerPasskey() {
   
   if (requestCmtg) {
     options.publicKey.extensions.cmtgKeys = true;
+    options.publicKey.extensions.cmtgKey = true;
     logInfo("Requesting CMTG Keys extension (cmtgKeys: true)");
   }
   
@@ -471,13 +486,14 @@ async function registerPasskey() {
     const clientOutputs = credJSON.clientExtensionResults || {};
     const cmtgRecords = [];
     
-    if (Array.isArray(clientOutputs.cmtgKeys) && clientOutputs.cmtgKeys.length > 0) {
-      logSuccess(`${clientOutputs.cmtgKeys.length} CMTG Key(s) returned by authenticator!`);
-      if (clientOutputs.cmtgKeys.length > 1) {
+    const cmtgKeys = getCmtgKeyOutputs(clientOutputs);
+    if (cmtgKeys.length > 0) {
+      logSuccess(`${cmtgKeys.length} CMTG Key(s) returned by authenticator!`);
+      if (cmtgKeys.length > 1) {
         logInfo("Only the first CMTG key will be used; the rest are ignored.");
       }
       // This demo only looks at the first CMTG key.
-      const cmtgOutput = clientOutputs.cmtgKeys[0];
+      const cmtgOutput = cmtgKeys[0];
       logInfo(`CMTG Public Key: ${cmtgOutput.cmtgKey}`);
       logInfo(`CMTG Signature: ${cmtgOutput.signature}`);
       
@@ -557,6 +573,7 @@ async function authenticatePasskey() {
   
   if (requestCmtg) {
     options.publicKey.extensions.cmtgKeys = true;
+    options.publicKey.extensions.cmtgKey = true;
     logInfo("Requesting CMTG Keys extension (cmtgKeys: true)");
   }
   
@@ -578,13 +595,14 @@ async function authenticatePasskey() {
     
     // Check CMTG extension output
     const clientOutputs = assertionJSON.clientExtensionResults || {};
-    if (Array.isArray(clientOutputs.cmtgKeys) && clientOutputs.cmtgKeys.length > 0) {
-      logSuccess(`${clientOutputs.cmtgKeys.length} CMTG Key(s) returned by authenticator during authentication!`);
-      if (clientOutputs.cmtgKeys.length > 1) {
+    const cmtgKeys = getCmtgKeyOutputs(clientOutputs);
+    if (cmtgKeys.length > 0) {
+      logSuccess(`${cmtgKeys.length} CMTG Key(s) returned by authenticator during authentication!`);
+      if (cmtgKeys.length > 1) {
         logInfo("Only the first CMTG key will be used; the rest are ignored.");
       }
       // This demo only looks at the first CMTG key.
-      const cmtgOutput = clientOutputs.cmtgKeys[0];
+      const cmtgOutput = cmtgKeys[0];
       logInfo(`CMTG Public Key: ${cmtgOutput.cmtgKey}`);
       logInfo(`CMTG Signature: ${cmtgOutput.signature}`);
       
@@ -733,7 +751,7 @@ async function initSupportCheck() {
   try {
     const caps = await PublicKeyCredential.getClientCapabilities();
     logInfo("Client capabilities: " + JSON.stringify(caps));
-    if (caps['extension:cmtgKeys']) {
+    if (caps['extension:cmtgKeys'] || caps['extension:cmtgKey']) {
       banner.className = "success-banner";
       banner.textContent = "✅ CMTG Keys extension is supported by this browser!";
       logSuccess("CMTG Keys extension (extension:cmtgKeys) is supported.");
