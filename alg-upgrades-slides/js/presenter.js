@@ -193,8 +193,8 @@
     for (let i = 0; i < 2; i++) {
       await act(`prev #${i + 1}`, prev, (b, a) => cmp(key(a), key(b)) < 0 || (b.playing && cmp(key(a), key(b)) === 0));
     }
-    await act('goto 11/3', () => goto(11, 3), (b, a) => a.slide === 11 && a.step === 3);
-    check('notes present on 11/3', last.notes.length > 0 && last.nextNotes.length > 0, { notes: last.notes, nextNotes: last.nextNotes });
+    await act('goto 10/3', () => goto(10, 3), (b, a) => a.slide === 10 && a.step === 3);
+    check('notes present on 10/3', last.notes.length > 0 && last.nextNotes.length > 0, { notes: last.notes, nextNotes: last.nextNotes });
     await act('goto last', () => goto(last.slideCount, 0), (b, a) => a.slide === a.slideCount);
     finish();
 

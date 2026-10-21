@@ -41,6 +41,7 @@ body.nocursor { cursor: none; }
   transition: opacity .35s ease, visibility 0s linear .35s;
 }
 .slide.active { visibility: visible; opacity: 1; transition: opacity .35s ease, visibility 0s; }
+.slide.instant { transition: none !important; }
 .slide aside.notes { display: none; }
 
 .shead { position: absolute; left: 64px; right: 64px; top: 24px; }

@@ -10,6 +10,7 @@
  *   ?static     no animations; every step is shown instantly
  *   ?selftest   visit every step of every slide and report errors in
  *               <pre id="selftest">
+ *   ?at=T       debug: freeze the current scene at time T seconds
  */
 (function () {
   'use strict';
@@ -166,6 +167,14 @@
     const c = ctls[i];
     await c.ready();
     if (cur !== i) {
+      // Slides marked data-continue pick up exactly where the previous slide
+      // ends, so swap them without the usual crossfade (in either direction).
+      const later = sections[Math.max(cur, i)];
+      if (cur >= 0 && Math.abs(cur - i) === 1 && later.hasAttribute('data-continue')) {
+        const pair = [sections[cur], sections[i]];
+        pair.forEach((sec) => sec.classList.add('instant'));
+        requestAnimationFrame(() => requestAnimationFrame(() => pair.forEach((sec) => sec.classList.remove('instant'))));
+      }
       if (cur >= 0) { sections[cur].classList.remove('active'); ctls[cur].leave(); }
       sections[i].classList.add('active');
       cur = i;
@@ -343,5 +352,7 @@
     const p = parseHash();
     if (p) deck.goto(p.slide, p.step);
     else enqueue(() => activate(0, 1));
+    // Debug: ?at=<seconds> freezes the current scene at that time (screenshots).
+    if (params.has('at')) enqueue(() => { const c = ctls[cur]; if (c.stage) return c.stage.seek(parseFloat(params.get('at'))); });
   });
 })();

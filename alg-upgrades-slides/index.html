@@ -17,7 +17,6 @@
   <!-- ============================================================ 1 -->
   <section class="slide" data-title="WebAuthn Algorithm Upgrades">
     <div class="title-wrap">
-      <p class="eyebrow">W3C Web Authentication WG · October 2026</p>
       <h1>WebAuthn<br><span class="y">Algorithm Upgrades</span></h1>
       <p class="sub">Moving existing credentials to post-quantum algorithms, one sign-in at a time</p>
       <p class="author">Nina Satragno · Google</p>
@@ -35,59 +34,44 @@
 
   <!-- ============================================================ 2 -->
   <section class="slide" data-scene="threat">
-    <header class="shead"><p class="kicker">Motivation</p><h2>Why now</h2></header>
+    <header class="shead"><p class="kicker">Motivation</p><h2>Introduction</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
     <aside class="notes">Keep this short: the WG knows the PQC story.</aside>
   </section>
 
-  <!-- ============================================================ 3 -->
-  <section class="slide" data-title="Goals & non-goals">
-    <header class="shead"><p class="kicker">Scope</p><h2>Goals &amp; non-goals</h2></header>
-    <div class="body">
-      <div class="cols">
-        <div>
-          <h3>Goals</h3>
-          <ul class="small">
-            <li class="good">Upgrade users to a new algorithm during a <code>get()</code></li>
-            <li class="good">No lock-out if the response never reaches the RP</li>
-            <li class="good">Extensions keep working after the migration</li>
-            <li class="good">As transparent as possible for users</li>
-            <li class="good">Algorithm agnostic</li>
-            <li class="good">Works for platform, roaming, syncing and device-bound authenticators</li>
-          </ul>
-        </div>
-        <div data-step="1">
-          <h3>Non-goals</h3>
-          <ul class="small">
-            <li class="bad">Rotating credentials within the same algorithm</li>
-            <li class="bad">A composite signature scheme on top of WebAuthn</li>
-            <li class="bad">Letting the RP pick between previously agreed keys at sign-in time</li>
-          </ul>
-        </div>
-      </div>
-      <p class="foot" data-step="2">The simplest thing that works: every new bit of complexity cuts across RPs, user agents, OS APIs, passkey providers and security keys.</p>
-    </div>
-    <aside class="notes">Goals are visible from the start. Emphasize: no lock-out, extensions keep working, works everywhere.</aside>
-    <aside class="notes" data-for="1">Non-goals: no rotation within the same algorithm, no composite signatures, no RP-selected keys at sign-in time.</aside>
-    <aside class="notes" data-for="2">We want the simplest solution, since complexity cuts across every layer of the ecosystem.</aside>
-  </section>
-
   <!-- ============================================================ 4a -->
   <section class="slide" data-scene="naiveWrongAuth" data-title="Naive upgrade (1/2): the wrong authenticator">
-    <header class="shead"><p class="kicker">Why not just get() then create()? · 1/2</p><h2>The new credential may land on a different authenticator</h2></header>
+    <header class="shead"><p class="kicker">Why not just get() then create()? · 1/2</p><h2>Using existing APIs</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 4b -->
-  <section class="slide" data-scene="naiveLost" data-title="Naive upgrade (2/2): the credential never reaches the server">
-    <header class="shead"><p class="kicker">Why not just get() then create()? · 2/2</p><h2>…or never reach the server</h2></header>
+  <section class="slide" data-scene="naiveLost" data-continue data-title="Naive upgrade (2/2): the credential never reaches the server">
+    <header class="shead"><p class="kicker">Why not just get() then create()? · 2/2</p><h2>Using existing APIs</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ requirements -->
+  <section class="slide" data-title="What a solution needs">
+    <header class="shead"><p class="kicker">Requirements</p><h2>What a solution needs</h2></header>
+    <div class="body">
+      <ul>
+        <li class="good" data-step="1"><b>One ceremony</b>: the upgrade happens inside a normal sign-in.</li>
+        <li class="good" data-step="2"><b>Same authenticator</b>: the new credential lives where the old one does.</li>
+        <li class="good" data-step="3"><b>Recoverable</b>: a response lost in transit doesn't lock the user out.</li>
+      </ul>
+    </div>
+    <aside class="notes">So, from the last two slides: what does a real solution need?</aside>
+    <aside class="notes" data-for="1">One ceremony: no second prompt. The upgrade rides along an ordinary get().</aside>
+    <aside class="notes" data-for="2">Same authenticator: the new credential must be created where the existing one lives.</aside>
+    <aside class="notes" data-for="3">Recoverable: if the response never reaches the server, the user isn't locked out.</aside>
   </section>
 
   <!-- ============================================================ 5 -->
   <section class="slide" data-scene="capabilities">
     <header class="shead"><p class="kicker">Proposal</p><h2>Two independent capabilities</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
+    <aside class="notes">We propose two independent additions to WebAuthn, one per capability.</aside>
   </section>
 
   <!-- ============================================================ 6 -->
@@ -106,21 +90,6 @@
   <section class="slide" data-scene="restore" data-title="restoreCredentials extension">
     <header class="shead"><p class="kicker">Part 1 · Backing up &amp; restoring credentials</p><h2>The <code>restoreCredentials</code> extension</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
-  </section>
-
-  <!-- ============================================================ 9 -->
-  <section class="slide" data-title="Stateless credentials">
-    <header class="shead"><p class="kicker">Part 1 · Backing up &amp; restoring credentials</p><h2>Stateless credentials</h2></header>
-    <div class="body">
-      <ul>
-        <li>Stateless credentials already behave this way, for <em>every</em> credential ever issued.</li>
-        <li data-step="1">But the authenticator can't know which ones it issued, so <code>existingCredentials</code> is <code>[]</code>.</li>
-        <li data-step="2">That's fine: the only way to get an assertion for a stateless credential is an allow-list anyway.</li>
-      </ul>
-    </div>
-    <aside class="notes">Stateless (non-resident) credentials can always be used again if the RP names them, so they are already "restorable".</aside>
-    <aside class="notes" data-for="1">The authenticator can't enumerate them, so it reports an empty list.</aside>
-    <aside class="notes" data-for="2">And they're only reachable via an allow-list, so the RP doesn't need the list.</aside>
   </section>
 
   <!-- ============================================================ 10 -->
@@ -154,17 +123,15 @@ $$extensionOutput //= (
           <li data-step="1">Pick the first alg in <code>pubKeyCredParams</code> the authenticator supports.</li>
           <li data-step="2">Already has a credential with that alg for this user + RP? Normal assertion.</li>
           <li data-step="3">Otherwise mint one. The <b>old</b> credential signs the assertion, which carries the new <code>authData</code>.</li>
-          <li data-step="4">Only authenticators that support restoring credentials may expose it.</li>
         </ul>
       </div>
-      <p class="foot" data-step="5">Alternative: sign a hash of the <code>authData</code>, or of credential ID + COSE key. Is the extra complexity warranted?</p>
+      <p class="foot" data-step="4">Alternative: sign a hash of the <code>authData</code>, or of credential ID + COSE key. Is the extra complexity warranted?</p>
     </div>
     <aside class="notes">The extension has a single input: the list of acceptable algorithms, in order of preference.</aside>
     <aside class="notes" data-for="1">The authenticator walks pubKeyCredParams and picks the first algorithm it supports.</aside>
     <aside class="notes" data-for="2">If it already has a credential for that algorithm, this is just a normal assertion. That makes the request idempotent.</aside>
     <aside class="notes" data-for="3">Otherwise it creates a new credential and returns its authenticator data inside the signed extension outputs of the old credential. That's the transfer of trust.</aside>
-    <aside class="notes" data-for="4">algUpgrade depends on restore: only authenticators that keep backups can expose it.</aside>
-    <aside class="notes" data-for="5">Footnote from the explainer: we could sign a hash instead of the whole authData. Not obviously worth it.</aside>
+    <aside class="notes" data-for="4">Footnote from the explainer: we could sign a hash instead of the whole authData. Not obviously worth it.</aside>
   </section>
 
   <!-- ============================================================ 12 -->

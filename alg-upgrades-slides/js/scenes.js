@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   const { C, create, uncreate, write, fadeIn, fadeOut, to, recolor, indicate, wiggle, along, lagged, succession,
-    call, anim, Ease, lerpColor, clamp } = Anim;
+    call, anim, Ease, lerp, lerpColor, clamp } = Anim;
 
   const SC = {};
 
@@ -97,7 +97,7 @@
 
     await s.step('Now rewind. Suppose every credential first moved to a <b>post-quantum</b> algorithm like ML-DSA…');
     await s.play(anim(1.2, null, (a) => { for (const k of keys) applyBreak(k, 1 - a); }), fadeOut(q, { dur: 0.8 }));
-    const title2 = s.text([['ML-DSA-44', { color: C.yellow }], ['   (FIPS 204)', { color: C.grey }]], { size: 36 }).at(640, 92);
+    const title2 = s.text('ML-DSA-44', { size: 36, color: C.yellow }).at(640, 92);
     const sorted = [...keys].sort((a, b) => a.x0 - b.x0);
     await s.play(fadeOut(title, { dy: -20 }), fadeIn(title2, { dy: 20 }),
       lagged(sorted.map((k) => recolor(k, C.yellow, { dur: 0.5 })), { dur: 2.2 }));
@@ -130,6 +130,7 @@
   /* 4a. naive upgrade: the wrong authenticator                         */
   /* ================================================================== */
   SC.naiveWrongAuth = async (s) => {
+    s.offset(0, -60);
     const phone = K.phone(s, 'phone').at(190, 262);
     const keyA = K.key(s, C.blue).at(190, 230).set({ s: 1.1, r: -30 });
     const aLbl = s.text('A', { size: 26, italic: true, color: C.blue }).at(190, 290);
@@ -161,16 +162,18 @@
     const ok = K.check(s).at(1090, 236);
     await s.play(create(ok, { dur: 0.5 }));
 
-    await s.step('Then it calls <code>create()</code> for an ML-DSA credential. That is a <b>second</b> prompt.');
+    await s.step('Then it calls <code>create()</code> for an ML-DSA credential.');
     await s.play(fadeOut(ok, { dur: 0.3 }));
     const p3 = K.pill(s, 'create()', C.yellow);
     await K.travel(s, p3, [[1018, 345], [640, 360]], { out: true, dur: 1 });
-    await s.play(call(() => setPrompts(2, C.red)), indicate(prompts, { color: C.red, scale: 1.25 }));
 
-    await s.step('The platform asks <b>where</b> to save the new passkey. Nothing ties this choice to A.');
+    await s.step('That is a <b>second</b> prompt: the platform asks <b>where</b> to save the new passkey. Nothing ties this choice to A.');
     const picker = K.picker(s, [[K.icons.phone, 'This phone'], [K.icons.key, 'Security key'], [K.icons.laptop, 'Another device']],
       { title: 'Save a passkey for shrine.com?' }).at(640, 390);
     await s.play(fadeIn(picker, { scale: 0.85, dur: 0.6 }));
+    await s.play(call(() => setPrompts(2, C.red)), indicate(prompts, { color: C.red, scale: 1.25 }));
+
+    await s.step('alice picks her <b>security key</b>, so B is created there, not on the phone that holds A.');
     const cur = K.cursor(s).at(760, 560);
     await s.play(fadeIn(cur, { dur: 0.4 }));
     const row = picker.rows[1];
@@ -178,7 +181,6 @@
     await s.play(indicate(row, { color: C.gold, scale: 1.05 }));
     await s.play(recolor(row, C.gold, { dur: 0.4 }));
 
-    await s.step('alice picks her <b>security key</b>. B is created there, not on the phone that holds A.');
     await s.play(fadeOut(picker, { scale: 0.9, dur: 0.5 }), fadeOut(cur, { dur: 0.4 }));
     const p4 = K.pill(s, 'create()', C.yellow);
     await K.travel(s, p4, [[640, 360], [240, 560]], { out: true, dur: 1 });
@@ -188,21 +190,6 @@
     await s.play(create(keyB), write(bLbl), K.flash(s, 320, 560, C.yellow));
     const p5 = K.pill(s, 'new credential · B', C.yellow);
     await K.travel(s, p5, [[240, 560], [640, 360], [1018, 345]], { out: true, dur: 1.4 });
-
-    const items = [
-      ['①', 'two prompts for one sign-in'],
-      ['②', 'B may be on a different authenticator'],
-      ['③', 'nothing proves A vouched for B'],
-    ].map(([n, t], i) => s.text([[n + '  ', { color: C.red }], [t, { color: C.white }]], { size: 22, anchor: 'start' }).at(770, 520 + i * 44));
-    await s.step('Problem ①: two prompts for what should be one sign-in.');
-    await s.play(fadeIn(items[0], { dx: -20 }), indicate(prompts, { color: C.red }));
-    await s.step('Problem ②: B may end up on a <b>different authenticator</b> than A.');
-    await s.play(fadeIn(items[1], { dx: -20 }), indicate(sk, { color: C.red, scale: 1.08 }));
-    await s.step('Problem ③: nothing proves that A <b>vouched</b> for B. The RP is trusting a brand new key.');
-    const link = s.path('M 210 250 C 400 330, 420 470, 320 540', { color: C.red, sw: 2.5 });
-    link.pathEl.setAttribute('stroke-dasharray', '8 8'); link.pathEl.dataset.nodraw = 1;
-    const lq = s.text('?', { size: 36, color: C.red }).at(400, 400);
-    await s.play(fadeIn(items[2], { dx: -20 }), fadeIn(link), write(lq));
   };
 
   /* ================================================================== */
@@ -212,29 +199,74 @@
     const L = authList(s);
     const slot1 = dashedRect(s, 200, 86).at(L.xs[0], L.y);
     const A = K.cardA(s, 't₁').at(L.xs[0], L.y);
-    const sv = K.server(s, 'shrine.com').at(1080, 240);
     const db = K.db(s).at(1080, 480);
     const dbA = mini(s, 'A', 1080 + db.slotX, 480 + db.slotY);
 
-    s.notes('Even on the right authenticator there is a second problem. Today an authenticator stores <b>one</b> credential per <code>{ user id, RP ID }</code>.');
-    await s.play(create(L.panel, { dur: 1 }), fadeIn(sv), fadeIn(db));
-    await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot1), fadeIn(dbA));
-    await s.play(create(A));
+    /* ---- continuity: start from slide 3's final frame (it is drawn with a
+     * -60 vertical offset, so everything here is shifted by hand) ---- */
+    const Y = -60;
+    const body = s.rect(112, 196, { color: C.light, sw: 3, rx: 22, fill: '#111317', fo: 1 }).at(190, 262 + Y);
+    const screen = s.rect(94, 150, { color: C.dim, sw: 1.5, rx: 8 }).at(190, 258 + Y);
+    const btn = s.circle(5, { color: C.dim, sw: 1.5 }).at(190, 348 + Y);
+    const phoneLbl = s.text('phone', { size: 20, color: C.light }).at(190, 390 + Y);
+    const keyA = K.key(s, C.blue).at(190, 230 + Y).set({ s: 1.1, r: -30 });
+    const aLbl = s.text('A', { size: 26, italic: true, color: C.blue }).at(190, 290 + Y);
+    const sk = K.secKey(s, 'security key').at(190, 570 + Y);
+    const keyB = K.key(s, C.yellow).at(320, 560 + Y).set({ s: 1.1, r: -30 });
+    const bLbl = s.text('B', { size: 26, italic: true, color: C.yellow }).at(320, 612 + Y);
+    const br = K.browser(s, 240, 160, 'browser').at(640, 360 + Y);
+    const sv = K.server(s, 'shrine.com').at(1090, 340 + Y);
+    const chs = [
+      K.channel(s, 260, 262 + Y, 515, 345 + Y),
+      K.channel(s, 240, 560 + Y, 515, 380 + Y),
+      K.channel(s, 765, 360 + Y, 1018, 345 + Y),
+    ];
+    const prompts = s.text([['user prompts: ', { color: C.grey }], ['2', { color: C.red }]], { size: 18, font: 'mono' }).at(640, 230 + Y);
+    const extras = [screen, btn, phoneLbl, aLbl, sk, keyB, bLbl, br, prompts, ...chs];
+    s.add(body, ...extras, keyA, sv);
 
-    await s.step('Creating the ML-DSA credential for alice on shrine.com <b>overwrites</b> A.');
+    s.notes('Even on the right authenticator there is a second problem. Today an authenticator stores <b>one</b> credential per <code>{ user id, RP ID }</code>.');
+    // a) everything but the phone, its key and the server goes away
+    await s.play(...extras.map((m) => fadeOut(m, { dur: 0.6 })));
+    // b) the phone expands into the authenticator box; c) the server moves
+    const r = body.g.querySelector('rect');
+    const from = { x: body.x, y: body.y, w: 112, h: 196, rx: 22, sw: 3, fo: 1 };
+    const goal = { x: L.cx, y: L.cy, w: 710, h: 300, rx: 18, sw: 2, fo: 0.55 };
+    const morph = anim(1.3, null, (a) => {
+      const w = lerp(from.w, goal.w, a), h = lerp(from.h, goal.h, a);
+      r.setAttribute('x', (-w / 2).toFixed(2)); r.setAttribute('y', (-h / 2).toFixed(2));
+      r.setAttribute('width', w.toFixed(2)); r.setAttribute('height', h.toFixed(2));
+      r.setAttribute('rx', lerp(from.rx, goal.rx, a).toFixed(2));
+      r.setAttribute('stroke-width', lerp(from.sw, goal.sw, a).toFixed(2));
+      r.setAttribute('stroke', lerpColor(C.light, C.dim, a));
+      r.setAttribute('fill', lerpColor('#111317', C.dark, a));
+      r.setAttribute('fill-opacity', lerp(from.fo, goal.fo, a).toFixed(3));
+      body.x = lerp(from.x, goal.x, a); body.y = lerp(from.y, goal.y, a); body.apply();
+    });
+    await s.play(morph,
+      to(sv, { x: 1080, y: 240 }, { dur: 1.3 }),
+      to(keyA, { x: A.x - A.w / 2 + 34, y: L.y, s: 0.78, r: 0 }, { dur: 1.3 }));
+    // Swap the morphed outline for the real panel (identical geometry).
+    L.panel.title.o = 0; L.panel.title.apply();
+    await s.play(call(() => { body.g.remove(); s.add(L.panel); }));
+    await s.play(fadeIn(L.panel.title, { dur: 0.5 }), fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot1),
+      fadeIn(A, { dur: 0.6 }), fadeOut(keyA, { dur: 0.6 }), fadeIn(db), fadeIn(dbA));
+
+    await s.step('shrine.com calls <code>create()</code> for an ML-DSA credential. It <b>overwrites</b> A, since there is one slot per user + RP.');
+    const cr = K.pill(s, 'create()', C.yellow);
+    await K.travel(s, cr, [[1010, 240], [L.xs[0], 130]], { dur: 1.3 });
     const B = K.cardB(s, 't₂').at(L.xs[0], 130);
-    await s.play(fadeIn(B, { dy: -30 }));
+    await s.play(fadeOut(cr, { scale: 0.6, dur: 0.4 }), fadeIn(B, { scale: 0.6, dur: 0.6 }));
     await s.play(to(B, { y: L.y }, { dur: 0.9, ease: Ease.back }),
       succession([Anim.wait(0.35), to(A, { y: L.y + 230, r: 24, o: 0 }, { dur: 0.9, ease: Ease.in })]),
       recolor(A, C.red, { dur: 0.6 }));
     A.g.remove();
 
-    await s.step('The response carrying B heads to the server…');
+    await s.step('The response carrying B heads to the server… and the connection drops. B is gone in transit.');
     const pb = mini(s, 'B', 0, 0, 0.55);
     const p0 = [790, L.y], mid = [905, 342];
     await K.travel(s, pb, [p0, mid], { dur: 1.3 });
 
-    await s.step('…and the connection drops. B is gone in transit.');
     const bolt = K.bolt(s).at(mid[0], mid[1] - 52);
     await s.play(create(bolt, { dur: 0.4 }), K.flash(s, mid[0], mid[1] - 52, C.red), recolor(pb, C.red, { dur: 0.4 }));
     const lost = s.text('connection lost', { size: 18, italic: true, color: C.red }).at(mid[0], mid[1] - 105);
@@ -244,49 +276,33 @@
     await s.play(fadeOut(lost));
     const mm = s.path(`M ${L.xs[0] + 100} ${L.y} C 840 ${L.y + 40}, 900 ${L.y + 60}, ${1080 + db.slotX - 64} ${480 + db.slotY}`, { color: C.red, sw: 2.5 });
     mm.pathEl.setAttribute('stroke-dasharray', '8 8'); mm.pathEl.dataset.nodraw = 1;
-    const nm = s.text('✗  no match: locked out', { size: 26, color: C.red }).at(880, 640);
+    const nm = s.text('✗', { size: 48, color: C.red }).at(856, 449);
     await s.play(fadeIn(mm), indicate(B, { color: C.red, scale: 1.08 }), indicate(dbA, { color: C.red, scale: 1.12 }), write(nm));
     await s.play(wiggle(nm, { angle: 2 }));
-
-    await s.step('So a real solution needs: <b>one</b> ceremony, the <b>same</b> authenticator, B <b>signed by A</b>, and a way to <b>recover</b>.');
-    const needs = ['one ceremony', 'same authenticator', 'A signs B', 'recoverable'];
-    const chips = needs.map((t, i) => K.chip(s, t, C.green, { w: 250, size: 17 }).at(205 + i * 290, 90));
-    await s.play(lagged(chips.map((c) => fadeIn(c, { dy: -16 })), { dur: 1.6 }));
   };
 
   /* ================================================================== */
   /* 5. two capabilities                                                */
   /* ================================================================== */
   SC.capabilities = async (s) => {
-    const sub = s.text('The problem splits into two independent pieces', { size: 26, italic: true, color: C.light }).at(640, 80);
-    s.notes('We propose two independent additions to WebAuthn, one per capability.');
-    await s.play(write(sub, { dur: 1.2 }));
+    // Deliberately calm: cards and arrow just fade in, one per press.
+    const calm = (m) => fadeIn(m, { dy: 12, dur: 0.6 });
 
     await s.step('① <b>Restore credentials</b>: keep a list per user + RP instead of one slot, and report backups with <code>restoreCredentials</code>.');
     const c1 = K.capCard(s, {
       n: '①', title: 'Restore credentials', color: C.blue,
       sub: ['Keep a list of credentials per', '{ user id, RP ID } instead of one', 'slot, so lost upgrades are', 'recoverable.'],
       ext: 'restoreCredentials',
-    }).at(340, 340);
-    await s.play(create(c1, { dur: 1.6 }));
+    }).at(340, 360);
+    await s.play(calm(c1));
 
     await s.step('② <b>Algorithm upgrade</b>: mint a new credential inside an ordinary <code>get()</code>, signed by the old one, with <code>algUpgrade</code>.');
     const c2 = K.capCard(s, {
       n: '②', title: 'Algorithm upgrade', color: C.yellow,
       sub: ['Mint a new credential inside an', 'ordinary get(), signed by the', 'existing one.'],
       ext: 'algUpgrade',
-    }).at(940, 340);
-    await s.play(create(c2, { dur: 1.6 }));
-
-    await s.step('Only authenticators that support restoring credentials may expose <code>algUpgrade</code>.');
-    const arr = s.arrow(700, 340, 580, 340, { color: C.light, sw: 3 });
-    const req = s.text('requires', { size: 20, italic: true, color: C.light }).at(640, 310);
-    await s.play(create(arr, { dur: 0.7 }), write(req, { dur: 0.7 }));
-
-    await s.step('This is a simpler alternative to, and conceptually a subset of, Akshay\'s <code>algPolicy</code> explainer, with more detail on extensions.');
-    const foot = s.text([['A simpler subset of ', { color: C.grey }], ['algPolicy', { color: C.gold, font: 'mono' }], [', with more detail on extensions', { color: C.grey }]],
-      { size: 22, italic: true }).at(640, 590);
-    await s.play(write(foot, { dur: 1.4 }));
+    }).at(940, 360);
+    await s.play(calm(c2));
   };
 
   /* ================================================================== */
@@ -434,10 +450,6 @@
     await s.play(write(resp, { dur: 1.6 }));
     const hl = s.rect(300, 30, { color: C.yellow, sw: 2, rx: 8 }).at(1003, 580);
     await s.play(create(hl, { dur: 0.6 }), indicate(A, { color: C.white, scale: 1.08 }));
-
-    await s.step('This lets the RP tell a <b>lost upgrade</b> (A is one of alice\'s credentials) apart from a passkey the user <b>deleted</b>. Stateless credentials report <code>[]</code>, but they can only be reached via allow-list anyway.');
-    const vs = s.text([['lost upgrade', { color: C.green }], ['   vs   ', { color: C.grey }], ['user-deleted passkey', { color: C.red }]], { size: 24, italic: true }).at(L.cx, 668);
-    await s.play(write(vs, { dur: 1.2 }));
   };
 
   /* ================================================================== */

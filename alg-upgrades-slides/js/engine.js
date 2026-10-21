@@ -478,6 +478,8 @@
     }
     /** Notes for the intro segment (played automatically on slide entry). */
     notes(html) { this.introNotes = html; }
+    /** Shift the whole scene, e.g. to re-centre it after removing content. */
+    offset(dx, dy) { this.layer.setAttribute('transform', `translate(${dx} ${dy})`); }
 
     /* ---- primitives (detached until added / animated in) ---- */
     g(...children) {
