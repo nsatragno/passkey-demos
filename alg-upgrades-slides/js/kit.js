@@ -201,6 +201,8 @@
       g.add(l);
     }
     return anim(o.dur ?? 0.7, () => { s.add(g); }, (a) => {
+      // Hidden at a = 0: zero-length dashes with round caps would render as dots.
+      g.o = a > 0 ? 1 : 0; g.apply();
       for (const l of lines) {
         const L = r2 - r1;
         const head = Anim.clamp(a * 2) * L, tail = Anim.clamp(a * 2 - 1) * L;
@@ -239,7 +241,12 @@
   /** Tiny icons for picker rows. */
   K.icons = {
     phone: (s) => s.g(s.rect(15, 24, { color: C.light, sw: 2, rx: 3 }), s.line(-3, 8, 3, 8, { color: C.light, sw: 1.5 })),
-    key: (s) => K.key(s, C.gold, { sw: 3 }).set({ s: 0.55, r: -30 }),
+    // Mini security key (same shape as K.secKey): connector, body, touch pad.
+    secKey: (s) => s.g(
+      s.rect(7, 6, { color: C.light, sw: 1.5, rx: 1 }).at(0, -14),
+      s.rect(13, 22, { color: C.light, sw: 2, rx: 4 }).at(0, 0),
+      s.circle(3.2, { color: C.gold, sw: 1.5, fill: C.gold, fo: 0.4 }).at(0, 4),
+    ),
     laptop: (s) => s.g(s.rect(24, 15, { color: C.light, sw: 2, rx: 2 }).at(0, -3), s.line(-15, 8, 15, 8, { color: C.light, sw: 2 })),
   };
 

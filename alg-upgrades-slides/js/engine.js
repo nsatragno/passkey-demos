@@ -182,6 +182,8 @@
     const drawPart = (p, q) => {
       if (p.kind === 'geom') {
         const e = p.e;
+        // A zero-length dash with round caps renders as a dot: hide until drawing starts.
+        e.style.visibility = q <= 0 ? 'hidden' : '';
         e.setAttribute('stroke-dashoffset', (p.L * (1 - clamp(q / 0.7))).toFixed(2));
         if (p.fo > 0) e.setAttribute('fill-opacity', (p.fo * clamp((q - 0.45) / 0.55)).toFixed(3));
         if (q >= 1) {

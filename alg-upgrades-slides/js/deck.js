@@ -11,6 +11,10 @@
  *   ?selftest   visit every step of every slide and report errors in
  *               <pre id="selftest">
  *   ?at=T       debug: freeze the current scene at time T seconds
+ *   ?index      debug: open the slide index (press I) on load
+ *
+ * Keys: Space/→ next · Shift+Space/← back · Home/End · F fullscreen ·
+ *       P presenter window · I slide index
  */
 (function () {
   'use strict';
@@ -281,9 +285,41 @@
   }
 
   if (!EMBED) {
+    /* ---- slide index (press I) ---- */
+    const index = document.createElement('div');
+    index.className = 'slide-index';
+    index.hidden = true;
+    index.innerHTML = '<div class="si-panel"><div class="si-head">Slides <span>I or Esc to close</span></div><ol></ol></div>';
+    document.body.appendChild(index);
+    const list = index.querySelector('ol');
+    sections.forEach((_, i) => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.innerHTML = `<span class="n">${i + 1}</span>${titleOf(i).replace(/</g, '&lt;')}`;
+      b.addEventListener('click', () => { closeIndex(); deck.goto(i + 1, 0); });
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+    index.addEventListener('click', (e) => { if (e.target === index) closeIndex(); });
+    const openIndex = () => {
+      [...list.children].forEach((li, i) => li.classList.toggle('current', i === cur));
+      index.hidden = false;
+      const c = list.children[cur];
+      if (c) c.querySelector('button').focus();
+    };
+    const closeIndex = () => { index.hidden = true; };
+    // Debug: ?index opens the index on load (screenshots).
+    if (params.has('index')) setTimeout(() => queue.then(openIndex), 500);
+
     window.addEventListener('keydown', (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key;
+      if (!index.hidden) {
+        // While the index is open, only close keys apply (Tab/Enter work on the buttons).
+        if (k === 'Escape' || k === 'i' || k === 'I') { e.preventDefault(); closeIndex(); }
+        return;
+      }
+      if (k === 'i' || k === 'I') { e.preventDefault(); openIndex(); return; }
       if ((k === ' ' && !e.shiftKey) || k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === 'Enter') {
         e.preventDefault(); deck.next();
       } else if ((k === ' ' && e.shiftKey) || k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp' || k === 'Backspace') {

@@ -79,51 +79,11 @@
     s.notes('Every passkey and security key credential today signs with <b>classical</b> cryptography. Billions of them.');
     await s.play(write(title, { dur: 1.4 }), lagged(keys.map((k) => fadeIn(k, { scale: 0.3, dur: 0.6 })), { dur: 2.6 }));
 
-    await s.step('A large enough quantum computer breaks the math underneath. Every one of these signatures becomes <b>forgeable</b>.');
-    const q = s.text('|ψ⟩', { size: 84, color: C.red }).at(1185, 360);
-    await s.play(write(q, { dur: 1 }));
-    const wave = K.wave(s, C.red, 150, 600).at(1150, 0);
-    await s.play(create(wave, { dur: 0.6 }));
-    const breakAt = (k, wx) => clamp((k.x0 - wx) / 110);
-    const applyBreak = (k, d) => {
-      K.tint(k, lerpColor(C.blue, C.red, d));
-      k.y = k.y0 + 22 * Ease.smooth(d); k.r = k.r0 + 28 * d * k.dir; k.o = 1 - 0.62 * d; k.apply();
-    };
-    await s.play(anim(3.2, null, (a) => {
-      wave.x = 1150 - a * 1100; wave.apply();
-      for (const k of keys) applyBreak(k, breakAt(k, wave.x));
-    }, Ease.linear));
-    await s.play(fadeOut(wave, { dur: 0.5 }));
-
-    await s.step('Now rewind. Suppose every credential first moved to a <b>post-quantum</b> algorithm like ML-DSA…');
-    await s.play(anim(1.2, null, (a) => { for (const k of keys) applyBreak(k, 1 - a); }), fadeOut(q, { dur: 0.8 }));
+    await s.step('Every one of them needs to move to a <b>post-quantum</b> algorithm like ML-DSA.');
     const title2 = s.text('ML-DSA-44', { size: 36, color: C.yellow }).at(640, 92);
     const sorted = [...keys].sort((a, b) => a.x0 - b.x0);
     await s.play(fadeOut(title, { dy: -20 }), fadeIn(title2, { dy: 20 }),
       lagged(sorted.map((k) => recolor(k, C.yellow, { dur: 0.5 })), { dur: 2.2 }));
-    const q2 = s.text('|ψ⟩', { size: 84, color: C.red }).at(1185, 360);
-    const wave2 = K.wave(s, C.red, 150, 600).at(1150, 0);
-    await s.play(fadeIn(q2), create(wave2, { dur: 0.6 }));
-    await s.play(anim(3, null, (a) => {
-      wave2.x = 1150 - a * 1100; wave2.apply();
-      for (const k of keys) {
-        const d = (k.x0 - wave2.x) / 70;
-        const bump = d > 0 && d < 1 ? Math.sin(d * Math.PI) : 0;
-        k.y = k.y0 - 10 * bump; k.apply();
-      }
-      wave2.o = 1 - a * 0.7; wave2.apply();
-    }, Ease.linear));
-    await s.play(fadeOut(wave2), fadeOut(q2));
-
-    await s.step('…then the same attack finds nothing to break. The hard part is the <b>move</b>: changing the key inside a credential people <em>already have</em>, without re-registering.');
-    await s.play(lagged(keys.map((k) => fadeOut(k, { scale: 0.4, dur: 0.4 })), { dur: 1.4 }), fadeOut(title2));
-    const a = K.cardA(s).at(380, 360).set({ s: 1.4 });
-    const b = K.cardB(s).at(900, 360).set({ s: 1.4 });
-    const arr = s.arrow(530, 360, 750, 360, { color: C.light, sw: 3 });
-    const qm = s.text('?', { size: 52, color: C.light }).at(640, 305);
-    await s.play(create(a));
-    await s.play(create(arr, { dur: 0.7 }), write(qm, { dur: 0.7 }));
-    await s.play(create(b));
   };
 
   /* ================================================================== */
@@ -168,7 +128,7 @@
     await K.travel(s, p3, [[1018, 345], [640, 360]], { out: true, dur: 1 });
 
     await s.step('That is a <b>second</b> prompt: the platform asks <b>where</b> to save the new passkey. Nothing ties this choice to A.');
-    const picker = K.picker(s, [[K.icons.phone, 'This phone'], [K.icons.key, 'Security key'], [K.icons.laptop, 'Another device']],
+    const picker = K.picker(s, [[K.icons.phone, 'This phone'], [K.icons.secKey, 'Security key'], [K.icons.laptop, 'Another device']],
       { title: 'Save a passkey for shrine.com?' }).at(640, 390);
     await s.play(fadeIn(picker, { scale: 0.85, dur: 0.6 }));
     await s.play(call(() => setPrompts(2, C.red)), indicate(prompts, { color: C.red, scale: 1.25 }));
@@ -288,20 +248,20 @@
     // Deliberately calm: cards and arrow just fade in, one per press.
     const calm = (m) => fadeIn(m, { dy: 12, dur: 0.6 });
 
-    await s.step('① <b>Restore credentials</b>: keep a list per user + RP instead of one slot, and report backups with <code>restoreCredentials</code>.');
+    await s.step('① <b>Back up and restore credentials</b>: keep a list per user + RP instead of one slot, and report backups with <code>restoreCredentials</code>.');
     const c1 = K.capCard(s, {
-      n: '①', title: 'Restore credentials', color: C.blue,
+      n: '①', title: 'Back up and restore credentials', color: C.blue,
       sub: ['Keep a list of credentials per', '{ user id, RP ID } instead of one', 'slot, so lost upgrades are', 'recoverable.'],
-      ext: 'restoreCredentials',
-    }).at(340, 360);
+      ext: 'restoreCredentials', w: 560,
+    }).at(345, 360);
     await s.play(calm(c1));
 
     await s.step('② <b>Algorithm upgrade</b>: mint a new credential inside an ordinary <code>get()</code>, signed by the old one, with <code>algUpgrade</code>.');
     const c2 = K.capCard(s, {
       n: '②', title: 'Algorithm upgrade', color: C.yellow,
       sub: ['Mint a new credential inside an', 'ordinary get(), signed by the', 'existing one.'],
-      ext: 'algUpgrade',
-    }).at(940, 360);
+      ext: 'algUpgrade', w: 560,
+    }).at(935, 360);
     await s.play(calm(c2));
   };
 
@@ -341,115 +301,163 @@
     await s.step('If it doesn\'t, <b>A</b> is still there to fall back on.');
     const bk = s.text('backup', { size: 17, italic: true, color: C.grey }).at(L.xs[0], L.y + 62);
     await s.play(indicate(A2, { color: C.white, scale: 1.08 }), fadeIn(bk, { dy: -10 }));
-
-    await s.step('Requests with an <b>empty</b> allow-list (usernameless sign-in) always use the <b>newest</b> credential.');
-    const req = K.pill(s, 'allowCredentials: [ ]', C.teal);
-    await K.travel(s, req, [[1010, 300], [L.xs[1], 150]], { dur: 1.2 });
-    const box = scanBox(s, L.xs[1], L.y);
-    await s.play(create(box, { dur: 0.6 }), fadeOut(req));
-    await s.play(indicate(B2, { color: C.yellow }));
-    const resp = K.pill(s, 'assertion · B', C.yellow);
-    await K.travel(s, resp, [[790, L.y], [1010, 300]], { out: true, dur: 1.1 });
-    const ok = K.check(s).at(1080, 130);
-    await s.play(create(ok, { dur: 0.5 }), indicate(dbB, { color: C.green, scale: 1.12 }));
   };
 
   /* ================================================================== */
-  /* 7. cleanup                                                         */
+  /* 8. getting an assertion with an allow-list (two examples)          */
   /* ================================================================== */
   SC.cleanup = async (s) => {
     const L = authList(s, { cy: 400 });
     const slot = dashedRect(s, 400, 96).at(L.slotX, L.y);
-    const A = K.cardA(s, 't₁').at(L.xs[0], L.y);
-    let B = K.cardB(s, 't₂').at(L.xs[1], L.y);
+    let A = K.cardA(s, 't₁').at(L.xs[0], L.y);
+    const B = K.cardB(s, 't₂').at(L.xs[1], L.y);
     const sv = K.server(s, 'shrine.com').at(1080, 230);
+    const db = K.db(s).at(1080, 470);
+    const dbAt = [1080 + db.slotX, 470 + db.slotY];
+    let dbCard = mini(s, 'B', ...dbAt);
     const reqAt = [L.slotX, 160];
+    const label = (n, which, color) => s.text([[`Example ${n}: `, { color: C.grey }], ['shrine.com has ', { color: C.light }],
+      [`cred ${which}`, { color, italic: true }]], { size: 22, anchor: 'start' }).at(70, 90);
 
-    s.notes('alice\'s authenticator holds <b>A</b> and a newer <b>B</b>.');
-    await s.play(create(L.panel, { dur: 0.9 }), fadeIn(sv));
-    await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot), create(A), create(B));
+    /* ---- example 1: shrine.com has cred B ---- */
+    let ex = label(1, 'B', C.yellow);
+    s.notes('alice\'s authenticator holds <b>A</b> and a newer <b>B</b>. Example 1: the upgrade reached the server, so shrine.com has <b>B</b>.');
+    await s.play(create(L.panel, { dur: 0.9 }), fadeIn(sv), fadeIn(db));
+    await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot), create(A), create(B), fadeIn(dbCard), write(ex, { dur: 0.8 }));
 
-    /* ---- round 1: allow-list [A] ---- */
-    await s.step('An <b>allow-list</b> request arrives. The authenticator looks for the <b>newest</b> credential that matches…');
-    let req = K.pill(s, [['allowCredentials: [ ', {}], ['A', { color: C.blue }], [' ]', {}]], C.teal, { size: 18 });
+    await s.step('shrine.com sends an <b>allow-list</b> with the credential it knows, <code>[B]</code>. The authenticator picks the <b>newest</b> matching credential: B.');
+    let req = K.pill(s, [['allowCredentials: [ ', {}], ['B', { color: C.yellow }], [' ]', {}]], C.teal, { size: 18 });
     await K.travel(s, req, [[1010, 250], reqAt], { dur: 1.2 });
     let box = scanBox(s, L.xs[1], L.y);
     await s.play(create(box, { dur: 0.5 }));
-    const m1 = K.cross(s, C.grey, 0.8).at(L.xs[1], L.y - 66);
-    await s.play(create(m1, { dur: 0.4 }));
-    await s.play(to(box, { x: L.xs[0] }, { dur: 0.7 }));
-    let m2 = K.check(s, C.green, 0.9).at(L.xs[0], L.y - 66);
-    await s.play(create(m2, { dur: 0.4 }));
+    let ck = K.check(s, C.green, 0.9).at(L.xs[1], L.y - 66);
+    await s.play(create(ck, { dur: 0.4 }));
 
-    await s.step('…uses it, and <b>erases every other credential</b> for that user and RP.');
-    await s.play(recolor(B, C.red, { dur: 0.5 }));
-    await s.play(uncreate(B, { dur: 0.8 }), fadeOut(m1));
-    const r1 = K.pill(s, 'assertion · A', C.blue);
-    await s.play(fadeOut(req), fadeOut(box), fadeOut(m2));
-    await K.travel(s, r1, [[790, L.y], [1010, 250]], { out: true, dur: 1.1 });
+    await s.step('It signs with B and <b>erases every other credential</b> for that user and RP. The backup A is no longer needed.');
+    await s.play(recolor(A, C.red, { dur: 0.5 }));
+    await s.play(uncreate(A, { dur: 0.8 }), fadeOut(req), fadeOut(box), fadeOut(ck));
+    let resp = K.pill(s, 'assertion · B', C.yellow);
+    await K.travel(s, resp, [[790, L.y], [1010, 250]], { out: true, dur: 1.1 });
+    let ok = K.check(s).at(1080, 130);
+    await s.play(create(ok, { dur: 0.5 }), indicate(dbCard, { color: C.green, scale: 1.12 }));
 
-    /* ---- round 2: allow-list [B] ---- */
-    await s.step('If the server knows <b>B</b> instead, the same rule cleans up the backup <b>A</b>.');
-    B = K.cardB(s, 't₂').at(L.xs[1], L.y);
-    await s.play(fadeIn(B, { dy: -30 }));
-    req = K.pill(s, [['allowCredentials: [ ', {}], ['B', { color: C.yellow }], [' ]', {}]], C.teal, { size: 18 });
+    /* ---- example 2: shrine.com has cred A ---- */
+    await s.step('Example 2: same authenticator, but the upgrade never reached the server, so shrine.com still has <b>A</b>.');
+    const ex2 = label(2, 'A', C.blue);
+    A = K.cardA(s, 't₁').at(L.xs[0], L.y);
+    const dbA = mini(s, 'A', ...dbAt);
+    await s.play(fadeOut(ok), fadeOut(ex, { dy: -10 }), fadeIn(ex2, { dy: 10 }), fadeIn(A, { dy: -30 }), ...swap(dbCard, dbA));
+    dbCard = dbA; ex = ex2;
+
+    await s.step('shrine.com sends <code>[A]</code>. B doesn\'t match, so the newest matching credential is A.');
+    req = K.pill(s, [['allowCredentials: [ ', {}], ['A', { color: C.blue }], [' ]', {}]], C.teal, { size: 18 });
     await K.travel(s, req, [[1010, 250], reqAt], { dur: 1.2 });
     box = scanBox(s, L.xs[1], L.y);
     await s.play(create(box, { dur: 0.5 }));
-    m2 = K.check(s, C.green, 0.9).at(L.xs[1], L.y - 66);
-    await s.play(create(m2, { dur: 0.4 }));
-    await s.play(recolor(A, C.red, { dur: 0.5 }));
-    await s.play(uncreate(A, { dur: 0.8 }));
-    await s.play(to(B, { x: L.xs[0] }), to(box, { x: L.xs[0] }), to(m2, { x: L.xs[0] }));
-    await s.play(fadeOut(req), fadeOut(box), fadeOut(m2));
-    const note = s.text('authenticators may also clean up old credentials to make space', { size: 19, italic: true, color: C.grey }).at(L.cx, 600);
-    await s.play(fadeIn(note, { dy: -10 }));
+    const x1 = K.cross(s, C.grey, 0.8).at(L.xs[1], L.y - 66);
+    await s.play(create(x1, { dur: 0.4 }));
+    await s.play(to(box, { x: L.xs[0] }, { dur: 0.7 }));
+    ck = K.check(s, C.green, 0.9).at(L.xs[0], L.y - 66);
+    await s.play(create(ck, { dur: 0.4 }));
+
+    await s.step('It signs with A and erases B. alice signs in with A, and the upgrade can simply be retried later.');
+    await s.play(recolor(B, C.red, { dur: 0.5 }), fadeOut(x1));
+    await s.play(uncreate(B, { dur: 0.8 }), fadeOut(req), fadeOut(box), fadeOut(ck));
+    resp = K.pill(s, 'assertion · A', C.blue);
+    await K.travel(s, resp, [[790, L.y], [1010, 250]], { out: true, dur: 1.1 });
+    ok = K.check(s).at(1080, 130);
+    await s.play(create(ok, { dur: 0.5 }), indicate(dbCard, { color: C.green, scale: 1.12 }));
   };
 
   /* ================================================================== */
-  /* 8. restoreCredentials                                              */
+  /* 9. empty allow-list: happy path, then recovery with restoreCredentials */
   /* ================================================================== */
   SC.restore = async (s) => {
-    const L = authList(s, { cy: 470 });
+    const L = authList(s, { cy: 400 });
     const slot = dashedRect(s, 400, 96).at(L.slotX, L.y);
     const A = K.cardA(s, 't₁').at(L.xs[0], L.y);
     const B = K.cardB(s, 't₂').at(L.xs[1], L.y);
-    const sv = K.server(s, 'shrine.com').at(1080, 260);
+    const sv = K.server(s, 'shrine.com').at(1080, 230);
+    const db = K.db(s).at(1080, 470);
+    const dbAt = [1080 + db.slotX, 470 + db.slotY];
+    let dbCard = mini(s, 'B', ...dbAt);
+    const reqAt = [L.slotX, 160];
+    const label = (n, which, color) => s.text([[`Example ${n}: `, { color: C.grey }], ['shrine.com has ', { color: C.light }],
+      [`cred ${which}`, { color, italic: true }]], { size: 22, anchor: 'start' }).at(70, 90);
+    const toServer = (text, color) => K.travel(s, K.pill(s, text, color), [[790, L.y], [1010, 250]], { out: true, dur: 1.1 });
+    const emptyReq = async (text = 'allowCredentials: [ ]', size = 18) => {
+      const req = K.pill(s, text, C.teal, { size });
+      await K.travel(s, req, [[1010, 250], reqAt], { dur: 1.2 });
+      const box = scanBox(s, L.xs[1], L.y);
+      await s.play(create(box, { dur: 0.5 }), fadeOut(req));
+      return box;
+    };
 
-    s.notes('A new assertion extension, <code>restoreCredentials</code>, tells the RP which backups still exist.');
-    await s.play(create(L.panel, { dur: 0.9 }), fadeIn(sv));
-    await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot), create(A), create(B));
+    /* ---- example 1 (happy path): shrine.com has cred B ---- */
+    let ex = label(1, 'B', C.yellow);
+    s.notes('Now usernameless sign-in, with an <b>empty</b> allow-list. Example 1: the upgrade reached shrine.com, so it has <b>B</b>.');
+    await s.play(create(L.panel, { dur: 0.9 }), fadeIn(sv), fadeIn(db));
+    await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot), create(A), create(B), fadeIn(dbCard), write(ex, { dur: 0.8 }));
 
-    await s.step('The input is a boolean. The <b>signed</b> output lists the credential IDs that are currently backed up.');
-    const kw = { color: C.blue }, tx = { color: C.light }, ty = { color: C.yellow };
-    const code = s.lines([
-      [['partial dictionary ', kw], ['AuthenticationExtensionsClientInputs {', tx]],
-      [['  boolean ', kw], ['restoreCredentials', ty], [';', tx]],
-      [['};', tx]],
-      [['dictionary ', kw], ['RestoreCredentialsOutput {', tx]],
-      [['  sequence<ArrayBuffer> ', kw], ['existingCredentials', ty], [';', tx]],
-      [['};', tx]],
-    ], { size: 17, font: 'mono', lh: 27 }).at(70, 70);
-    await s.play(write(code, { dur: 2.2 }));
+    await s.step('With an empty allow-list, the authenticator always uses the <b>newest</b> credential: B.');
+    let box = await emptyReq();
 
-    await s.step('An empty allow-list request asks for <code>restoreCredentials</code>…');
-    const req = K.pill(s, 'allowCredentials: [ ]  ·  restoreCredentials: true', C.teal, { size: 15 });
-    await K.travel(s, req, [[1010, 280], [L.slotX - 30, 360]], { dur: 1.2 });
-    const box = scanBox(s, L.xs[1], L.y);
-    await s.play(create(box, { dur: 0.5 }), fadeOut(req));
+    await s.step('shrine.com knows B, so alice is signed in. A stays on the authenticator as a backup.');
+    await s.play(fadeOut(box));
+    await toServer('assertion · B', C.yellow);
+    let mark = K.check(s).at(1080, 130);
+    await s.play(create(mark, { dur: 0.5 }), indicate(dbCard, { color: C.green, scale: 1.12 }));
 
-    await s.step('…the response is an assertion signed by <b>B</b>, plus <code>existingCredentials: [A]</code>, inside the signed authenticator data.');
-    const out = K.panel(s, 410, 170, 'response', { size: 16, italic: true }).at(1035, 560);
+    /* ---- example 2 (unhappy path): shrine.com has cred A ---- */
+    await s.step('Example 2: the upgrade never reached the server, so shrine.com still has <b>A</b>.');
+    const ex2 = label(2, 'A', C.blue);
+    const dbA = mini(s, 'A', ...dbAt);
+    await s.play(fadeOut(mark), fadeOut(ex, { dy: -10 }), fadeIn(ex2, { dy: 10 }), ...swap(dbCard, dbA));
+    dbCard = dbA; ex = ex2;
+
+    await s.step('The same empty allow-list request gets an assertion from the newest credential, <b>B</b>…');
+    box = await emptyReq();
+    await s.play(fadeOut(box));
+    await toServer('assertion · B', C.yellow);
+
+    await s.step('…which shrine.com has never seen. Is this a lost upgrade, or a passkey alice deleted? It can\'t tell.');
+    mark = K.cross(s).at(1080, 130);
+    const unk = s.text([['unknown credential ', { color: C.red }], ['B', { color: C.yellow }]], { size: 20, italic: true }).at(1080, 580);
+    await s.play(create(mark, { dur: 0.5 }), write(unk, { dur: 0.8 }), indicate(dbCard, { color: C.red, scale: 1.12 }));
+
+    await s.step('This is where the new <code>restoreCredentials</code> extension comes in: the signed response also lists the credentials the authenticator still keeps as backups.');
+    await s.play(fadeOut(mark), fadeOut(unk));
+    box = await emptyReq('allowCredentials: [ ]  ·  restoreCredentials: true', 15);
+    const out = K.panel(s, 540, 124, 'response', { size: 16, italic: true }).at(L.cx, 628);
     const resp = s.lines([
       [['assertion', { color: C.white }], ['   signed by ', { color: C.grey }], ['B', { color: C.yellow }]],
-      [['restoreCredentials: {', { color: C.light }]],
-      [['  existingCredentials: [ ', { color: C.light }], ['A', { color: C.blue }], [' ]', { color: C.light }]],
-      [['}', { color: C.light }]],
-    ], { size: 16, font: 'mono', lh: 26 }).at(850, 528);
-    await s.play(fadeIn(out));
-    await s.play(write(resp, { dur: 1.6 }));
-    const hl = s.rect(300, 30, { color: C.yellow, sw: 2, rx: 8 }).at(1003, 580);
-    await s.play(create(hl, { dur: 0.6 }), indicate(A, { color: C.white, scale: 1.08 }));
+      [['restoreCredentials: { existingCredentials: [ ', { color: C.light }], ['A', { color: C.blue }], [' ] }', { color: C.light }]],
+    ], { size: 16, font: 'mono', lh: 28 }).at(L.cx - 250, 630);
+    await s.play(fadeOut(box), fadeIn(out));
+    await s.play(write(resp, { dur: 1.4 }));
+
+    await s.step('A is one of alice\'s credentials, so this was a <b>lost upgrade</b>. shrine.com retries with <code>allowCredentials: [A]</code>…');
+    await s.play(indicate(resp.rows[1], { color: C.blue, scale: 1.03 }), indicate(dbCard, { color: C.blue, scale: 1.12 }));
+    const req = K.pill(s, [['allowCredentials: [ ', {}], ['A', { color: C.blue }], [' ]', {}]], C.teal, { size: 18 });
+    await K.travel(s, req, [[1010, 250], reqAt], { dur: 1.2 });
+    box = scanBox(s, L.xs[1], L.y);
+    await s.play(create(box, { dur: 0.5 }));
+    const x1 = K.cross(s, C.grey, 0.8).at(L.xs[1], L.y - 66);
+    await s.play(create(x1, { dur: 0.4 }));
+    await s.play(to(box, { x: L.xs[0] }, { dur: 0.7 }));
+    const ck = K.check(s, C.green, 0.9).at(L.xs[0], L.y - 66);
+    await s.play(create(ck, { dur: 0.4 }));
+
+    await s.step('…the authenticator signs with A and erases B. alice is signed in, and the upgrade can be retried later.');
+    await s.play(recolor(B, C.red, { dur: 0.5 }), fadeOut(x1));
+    await s.play(uncreate(B, { dur: 0.8 }), fadeOut(req), fadeOut(box), fadeOut(ck), fadeOut(out), fadeOut(resp));
+    await toServer('assertion · A', C.blue);
+    mark = K.check(s).at(1080, 130);
+    await s.play(create(mark, { dur: 0.5 }), indicate(dbCard, { color: C.green, scale: 1.12 }));
+
+    await s.step('Backups are best effort: authenticators may also <b>clean up old credentials over time</b> to make space for new ones.');
+    const note = s.text('authenticators may also clean up old credentials over time to make space', { size: 21, italic: true, color: C.light }).at(L.cx, 610);
+    await s.play(fadeIn(note, { dy: -10 }));
   };
 
   /* ================================================================== */
@@ -482,50 +490,59 @@
     const req = K.pill(s, 'get() + algUpgrade', C.teal);
     await K.travel(s, req, [[1022, 410], [640, 455], [350, 455]], { out: true, dur: 1.8 });
 
-    await s.step('The authenticator picks the first algorithm it supports, ML-DSA-44, and has no ML-DSA credential for alice yet…');
+    await s.step('The authenticator picks the first algorithm it supports, ML-DSA-44, and has no ML-DSA credential for alice yet.');
     const c1 = s.text([['ML-DSA-44 supported ', { color: C.light }], ['✓', { color: C.green }]], { size: 15, font: 'mono' }).at(200, 520);
     const c2 = s.text([['ML-DSA cred exists? ', { color: C.light }], ['no', { color: C.red }]], { size: 15, font: 'mono' }).at(200, 552);
     await s.play(write(c1, { dur: 0.9 }));
     await s.play(write(c2, { dur: 0.9 }));
 
-    await s.step('…so it mints a new credential, <b>B</b>.');
-    const B = K.cardB(s).at(200, 470);
-    await s.play(fadeOut(c1), fadeOut(c2));
-    await s.play(create(B));
-    await s.play(indicate(B, { color: C.white, scale: 1.08 }));
-
     await s.step('alice verifies once, the same as any other sign-in.');
-    const fing = K.finger(s, C.green).at(200, 560);
+    await s.play(fadeOut(c1), fadeOut(c2));
+    const fing = K.finger(s, C.green).at(200, 500);
     await s.play(create(fing, { dur: 0.7 }));
     await s.play(indicate(fing, { color: C.green, scale: 1.3 }));
-    await s.play(fadeOut(fing, { dur: 0.4 }), fadeOut(code, { dy: -20 }));
+    await s.play(fadeOut(fing, { dur: 0.4 }));
+
+    await s.step('Only after user verification does it mint the new credential, <b>B</b>.');
+    const B = K.cardB(s).at(200, 470);
+    await s.play(create(B));
+    await s.play(indicate(B, { color: C.white, scale: 1.08 }), fadeOut(code, { dy: -20 }));
 
     /* ---- the signed document ---- */
-    await s.step('The old key <b>A</b> signs the assertion, and B\'s authenticator data is <b>inside</b> the signed extension outputs.');
+    await s.step('The authenticator builds the assertion. Its <b>authenticator data</b> has an <b>extensions</b> section, empty for now.');
     const doc = s.g().at(640, 210);
-    const paper = s.rect(360, 200, { color: C.light, sw: 2, fill: '#14171c', fo: 1, rx: 10 });
-    const head = s.text('assertion', { size: 22, anchor: 'start' }).at(-160, -74);
-    const l1 = s.text('rpIdHash · flags · signCount', { size: 14, font: 'mono', color: C.grey, anchor: 'start' }).at(-160, -40);
-    const l2 = s.text('extensions.algUpgrade.authData:', { size: 14, font: 'mono', color: C.light, anchor: 'start' }).at(-160, -12);
-    doc.add(paper, head, l1, l2);
+    const paper = s.rect(380, 230, { color: C.light, sw: 2, fill: '#14171c', fo: 1, rx: 10 });
+    const head = s.text('assertion', { size: 22, anchor: 'start' }).at(-170, -90);
+    const adBox = s.rect(344, 160, { color: C.dim, sw: 1.5, rx: 8 }).at(0, 18);
+    const adLbl = s.text('authData', { size: 14, italic: true, color: C.grey, anchor: 'start' }).at(-160, -46);
+    const l1 = s.text('rpIdHash · flags · signCount', { size: 14, font: 'mono', color: C.grey, anchor: 'start' }).at(-160, -20);
+    const l2 = s.text('extensions: {', { size: 14, font: 'mono', color: C.light, anchor: 'start' }).at(-160, 8);
+    const l3 = s.text('algUpgrade:', { size: 14, font: 'mono', color: C.yellow, anchor: 'start' }).at(-144, 46);
+    const l4 = s.text('}', { size: 14, font: 'mono', color: C.light, anchor: 'start' }).at(-160, 82);
+    const extSlot = dashedRect(s, 160, 60).at(70, 46);
+    doc.add(paper, head, adBox, adLbl, l1, l2, l3, l4, extSlot);
     await s.play(create(doc, { dur: 1.4 }));
-    const Bc = mini(s, 'B', 200, 470, 1);
+
+    await s.step('B\'s authenticator data goes into the <code>algUpgrade</code> extension output, <b>inside</b> the assertion\'s authenticator data.');
+    const Bc = mini(s, 'B', 200, 470, 1).set({ o: 0 });
     s.add(Bc);
-    await s.play(to(Bc, { x: 640, y: 255, s: 0.8 }, { dur: 1.3, arc: -0.6 }));
-    const kA = K.key(s, C.blue).at(120, 385).set({ s: 0.9 });
+    await s.play(to(Bc, { x: 640 + 70, y: 210 + 46, s: 0.8, o: 1 }, { dur: 1.3, arc: -0.6 }));
+
+    await s.step('Then the old key <b>A</b> signs the whole assertion, including B.');
+    const kA = K.key(s, C.blue).at(A.x - A.w / 2 + 34, A.y).set({ s: 0.78, o: 0 });
     s.add(kA);
-    await s.play(to(kA, { x: 770, y: 268, s: 1.3, r: -30 }, { dur: 1.3, arc: 0.5 }));
-    const seal = K.seal(s, C.blue).at(770, 268);
-    await s.play(fadeOut(kA, { scale: 0.5, dur: 0.4 }), create(seal, { dur: 0.6 }), K.flash(s, 770, 268, C.blue));
-    const wrap = s.rect(384, 224, { color: C.blue, sw: 3, rx: 14 }).at(640, 210);
-    const wl = s.text('signed by A', { size: 18, italic: true, color: C.blue }).at(640, 340);
+    await s.play(to(kA, { x: 800, y: 120, s: 1.3, r: -30, o: 1 }, { dur: 1.3, arc: 0.5 }));
+    const seal = K.seal(s, C.blue).at(800, 120);
+    await s.play(fadeOut(kA, { scale: 0.5, dur: 0.4 }), create(seal, { dur: 0.6 }), K.flash(s, 800, 120, C.blue));
+    const wrap = s.rect(404, 254, { color: C.blue, sw: 3, rx: 14 }).at(640, 210);
+    const wl = s.text('signed by A', { size: 18, italic: true, color: C.blue }).at(640, 354);
     await s.play(create(wrap, { dur: 1 }), write(wl));
 
     await s.step('That is the <b>transfer of trust</b>: anyone who trusts A can now trust B.');
     await s.play(indicate(Bc, { color: C.yellow, scale: 1.1 }));
 
     /* ---- send to server ---- */
-    await s.step('shrine.com verifies the signature with <b>A</b>, which it already trusts, then swaps A for <b>B</b>.');
+    await s.step('The assertion goes to shrine.com, which verifies the signature with <b>A</b>, the credential it already trusts.');
     const pkg = s.g();
     s.add(pkg);
     [doc, Bc, seal, wrap].forEach((m) => { m.x -= 640; m.y -= 210; m.apply(); pkg.add(m); });
@@ -534,21 +551,67 @@
     await s.play(to(pkg, { y: 455, s: 0.32 }, { dur: 0.9 }));
     await s.play(to(pkg, { x: 1022, y: 410 }, { dur: 1.1 }));
     await s.play(fadeOut(pkg, { scale: 0.6, dur: 0.4 }));
-    const ver = s.text([['verify with A  ', { color: C.light }], ['✓', { color: C.green }]], { size: 20, font: 'mono' }).at(1090, 275);
+    const ver = s.text([['verify with A  ', { color: C.light }], ['✓', { color: C.green }]], { size: 20, font: 'mono' }).at(1090, 248);
     await s.play(write(ver, { dur: 0.9 }));
+
+    await s.step('The signature checks out, so shrine.com <b>replaces</b> A with <b>B</b> in its database.');
+    const rep = s.text([['replace with ', { color: C.light }], ['B', { color: C.yellow }]], { size: 20, font: 'mono' }).at(1090, 282);
+    await s.play(write(rep, { dur: 0.8 }));
     const dbB = mini(s, 'B', dbA.x, dbA.y);
     await s.play(...swap(dbA, dbB));
+  };
 
-    await s.step('Later, an allow-list request naming <b>B</b> lets the authenticator erase the backup <b>A</b>.');
-    await s.play(fadeOut(ver));
-    const req2 = K.pill(s, [['allowCredentials: [ ', {}], ['B', { color: C.yellow }], [' ]', {}]], C.teal);
-    await K.travel(s, req2, [[1022, 410], [640, 455], [350, 455]], { out: true, dur: 1.6 });
-    await s.play(recolor(A, C.red, { dur: 0.5 }));
-    await s.play(uncreate(A, { dur: 0.8 }));
-    await s.play(to(B, { y: 385 }));
+  /* ================================================================== */
+  /* 13. upgrade, continued: the preferred algorithm already exists     */
+  /* ================================================================== */
+  SC.upgradeAgain = async (s) => {
+    // Start from slide 12's final frame.
+    const panel = K.panel(s, 300, 330, 'authenticator').at(200, 450);
+    const A = K.cardA(s).at(200, 385);
+    const B = K.cardB(s).at(200, 470);
+    const br = K.browser(s, 220, 140, 'browser').at(640, 455);
+    const sv = K.server(s, 'shrine.com').at(1090, 380);
+    const db = K.db(s).at(1090, 590);
+    const dbB = mini(s, 'B', 1090 + db.slotX, 590 + db.slotY);
+    const ch1 = K.channel(s, 350, 455, 528, 455);
+    const ch2 = K.channel(s, 752, 455, 1022, 410);
+    const ver = s.text([['verify with A  ', { color: C.light }], ['✓', { color: C.green }]], { size: 20, font: 'mono' }).at(1090, 248);
+    const rep = s.text([['replace with ', { color: C.light }], ['B', { color: C.yellow }]], { size: 20, font: 'mono' }).at(1090, 282);
+    s.add(panel, A, B, br, sv, db, dbB, ch1, ch2, ver, rep);
 
-    await s.step('alice is now on ML-DSA. <b>One</b> ceremony, the <b>same</b> authenticator, and trust carried over.');
-    await s.play(indicate(B, { color: C.white, scale: 1.1 }), indicate(dbB, { color: C.white, scale: 1.12 }));
+    s.notes('Some time later, alice signs in again. shrine.com keeps sending the same <code>algUpgrade</code> request.');
+    await s.play(fadeOut(ver), fadeOut(rep));
+
+    await s.step('Next sign-in: the same <code>get()</code> with <code>algUpgrade</code>, still preferring ML-DSA-44.');
+    const code = s.lines([
+      [['navigator.credentials.get({ publicKey: { …, extensions: {', { color: C.light }]],
+      [['  algUpgrade', { color: C.yellow }], [': { pubKeyCredParams: [', { color: C.light }]],
+      [['    { alg: ', { color: C.light }], ['-48', { color: C.gold }], [' },  ', { color: C.light }], ['// ML-DSA-44', { color: C.grey }]],
+      [['    { alg: ', { color: C.light }], ['-7', { color: C.gold }], [' },   ', { color: C.light }], ['// ECDSA', { color: C.grey }]],
+      [['  ] } } } });', { color: C.light }]],
+    ], { size: 18, font: 'mono', lh: 28 }).at(330, 60);
+    await s.play(write(code, { dur: 2 }));
+    const req = K.pill(s, 'get() + algUpgrade', C.teal);
+    await K.travel(s, req, [[1022, 410], [640, 455], [350, 455]], { out: true, dur: 1.6 });
+
+    await s.step('The preferred algorithm, ML-DSA-44, already has a credential for alice: <b>B</b>. Nothing new is created.');
+    const c1 = s.text([['ML-DSA-44 supported ', { color: C.light }], ['✓', { color: C.green }]], { size: 15, font: 'mono' }).at(200, 545);
+    const c2 = s.text([['ML-DSA cred exists? ', { color: C.light }], ['yes', { color: C.green }]], { size: 15, font: 'mono' }).at(200, 577);
+    await s.play(write(c1, { dur: 0.9 }));
+    await s.play(write(c2, { dur: 0.9 }), indicate(B, { color: C.white, scale: 1.08 }));
+
+    await s.step('So this is just a <b>normal assertion</b>: alice verifies, B signs it, and there is no <code>algUpgrade</code> output.');
+    await s.play(fadeOut(c1), fadeOut(c2), fadeOut(code, { dy: -20 }));
+    const fing = K.finger(s, C.green).at(200, 560);
+    await s.play(create(fing, { dur: 0.7 }));
+    await s.play(indicate(fing, { color: C.green, scale: 1.3 }));
+    await s.play(fadeOut(fing, { dur: 0.4 }));
+    const resp = K.pill(s, 'assertion · B', C.yellow);
+    await K.travel(s, resp, [[350, 455], [640, 455], [1022, 410]], { out: true, dur: 1.6 });
+
+    await s.step('shrine.com verifies with B, the credential it now has on file. Sending <code>algUpgrade</code> again is harmless.');
+    const ver2 = s.text([['verify with B  ', { color: C.light }], ['✓', { color: C.green }]], { size: 20, font: 'mono' }).at(1090, 265);
+    await s.play(write(ver2, { dur: 0.9 }), indicate(dbB, { color: C.green, scale: 1.12 }));
   };
 
   /* ================================================================== */
@@ -570,13 +633,18 @@
 
     await s.step('During an upgrade that state is <b>copied</b> from A to B: largeBlob (e.g. copy the largeBlobKey), credBlob, hmac-secret, the third-party-payment bit, credProtect.');
     const copies = chipsA.map((c, i) => chip(names[i], 330, c.y));
-    await s.play(lagged(copies.map((c) => to(c, { x: 950 }, { dur: 1.1, arc: -0.25 })), { dur: 2.6 }));
+    // Each pill is copied: a duplicate slides straight across from A's column to B's.
+    await s.play(lagged(copies.map((c) => to(c, { x: 950 }, { dur: 1.0 })), { lag: 0.18 }));
     await s.play(lagged(copies.map((c) => indicate(c, { color: C.yellow, scale: 1.06 })), { dur: 1.2 }));
 
     await s.step('Take PRF: the same input gives the <b>same output</b> from both credentials, so data encrypted under it stays readable.');
-    await s.play(lagged([...chipsA, ...copies].map((c) => fadeOut(c, { dur: 0.4 })), { dur: 0.9 }));
+    // The two PRF pills glide to the centre and merge into PRF(salt); the rest fade away.
+    const others = [...chipsA.slice(1), ...copies.slice(1)];
+    await s.play(...others.map((c) => fadeOut(c, { dur: 0.5 })),
+      to(chipsA[0], { x: 640, y: 270 }, { dur: 0.9 }), to(copies[0], { x: 640, y: 270 }, { dur: 0.9 }));
     const salt = K.pill(s, 'PRF(salt)', C.teal, { size: 18 }).at(640, 270);
-    await s.play(fadeIn(salt, { scale: 0.6 }));
+    await s.play(fadeOut(chipsA[0], { scale: 0.6, dur: 0.5 }), fadeOut(copies[0], { scale: 0.6, dur: 0.5 }),
+      fadeIn(salt, { scale: 1.6, dur: 0.6 }));
     const aa = s.arrow(580, 290, 400, 360, { color: C.teal, sw: 2.5 });
     const ab = s.arrow(700, 290, 880, 360, { color: C.teal, sw: 2.5 });
     await s.play(create(aa, { dur: 0.6 }), create(ab, { dur: 0.6 }));
@@ -586,24 +654,43 @@
     const eq = s.text('=', { size: 48, color: C.green }).at(640, 392);
     await s.play(write(eq, { dur: 0.5 }));
 
-    await s.step('Two things do <b>not</b> carry over: B has no attestation of its own, and B cannot output creation-time extensions.');
-    const no1 = s.text([['✗  ', { color: C.red }], ['attestation statement', { color: C.light }]], { size: 22, anchor: 'start' }).at(470, 500);
-    const no2 = s.text([['✗  ', { color: C.red }], ['new creation-time extensions', { color: C.light }]], { size: 22, anchor: 'start' }).at(470, 546);
-    await s.play(fadeIn(no1, { dx: -20 }));
+    await s.step('What does <b>not</b> carry over: B cannot output new creation-time extensions. An upgrade never gives B abilities A didn\'t have.');
+    const no2 = s.text([['✗  ', { color: C.red }], ['new creation-time extensions', { color: C.light }]], { size: 22, anchor: 'start' }).at(470, 520);
     await s.play(fadeIn(no2, { dx: -20 }));
+  };
 
-    await s.step('Neither is needed: B is trusted <em>because A signed it</em>, and an upgrade never gives B abilities A didn\'t have.');
-    const why = s.text([['B is trusted because ', { color: C.light }], ['A', { color: C.blue, italic: true }], [' signed it', { color: C.light }]], { size: 24, italic: true }).at(640, 630);
-    await s.play(write(why, { dur: 1.4 }));
-    await s.play(indicate(A, { color: C.blue, scale: 1.08 }));
+  /* ================================================================== */
+  /* 15. attestation                                                    */
+  /* ================================================================== */
+  SC.attestation = async (s) => {
+    const A = K.cardA(s).at(330, 330).set({ s: 1.35 });
+    const att = K.chip(s, 'attestation statement', C.gold, { w: 300, size: 18 }).at(330, 170);
+    const attArr = s.arrow(330, 196, 330, 280, { color: C.gold, sw: 2.5, head: 12 });
+    const attLbl = s.text('at registration', { size: 18, italic: true, color: C.grey, anchor: 'start' }).at(350, 238);
 
-    await s.step('Everything else needs no special handling: credProps (same properties), appId/appIdExclude (U2F devices aren\'t eligible), remoteClientDataJson, minPinLength / pinComplexityPolicy (match the original).');
-    await s.play(lagged([salt, aa, ab, oa, ob, eq, no1, no2, why].map((m) => fadeOut(m, { dur: 0.4 })), { dur: 1 }));
-    const hdr = s.text('no special handling', { size: 22, italic: true, color: C.grey }).at(640, 270);
-    const na = ['credProps', 'appId / appIdExclude', 'remoteClientDataJson', 'minPinLength', 'pinComplexityPolicy'];
-    const naChips = na.map((t, i) => K.chip(s, t, C.grey, { w: 290, fo: 0.05 }).at(i < 3 ? 330 + (i % 3) * 310 : 485 + (i - 3) * 310, i < 3 ? 340 : 400));
-    await s.play(write(hdr, { dur: 0.8 }));
-    await s.play(lagged(naChips.map((c) => fadeIn(c, { dy: -12 })), { dur: 1.4 }));
+    s.notes('When A was registered, it may have come with an <b>attestation statement</b> vouching for the authenticator that holds it.');
+    await s.play(create(A));
+    await s.play(fadeIn(att, { dy: -12 }), create(attArr, { dur: 0.7 }), fadeIn(attLbl));
+
+    await s.step('B is created by <code>algUpgrade</code> inside a <code>get()</code>. There is no way for it to carry an attestation statement.');
+    const arr = s.arrow(500, 330, 780, 330, { color: C.light, sw: 3 });
+    const al = s.text('algUpgrade', { size: 18, font: 'mono', color: C.yellow }).at(640, 302);
+    const B = K.cardB(s).at(950, 330).set({ s: 1.35 });
+    await s.play(create(arr, { dur: 0.7 }), write(al, { dur: 0.7 }));
+    await s.play(create(B));
+    const none = dashedRect(s, 300, 40).at(950, 170);
+    const noneT = s.text([['✗  ', { color: C.red }], ['no attestation statement', { color: C.grey, italic: true }]], { size: 17 }).at(950, 170);
+    await s.play(fadeIn(none), write(noneT, { dur: 0.8 }));
+
+    await s.step('It doesn\'t need one: B is <b>signed by A</b>. If the RP trusted A\'s attestation when A was registered, it can trust B.');
+    const seal = K.seal(s, C.blue).at(640, 368);
+    const sl = s.text('signed by A', { size: 17, italic: true, color: C.blue }).at(640, 410);
+    await s.play(create(seal, { dur: 0.6 }), K.flash(s, 640, 368, C.blue), write(sl, { dur: 0.6 }));
+    const chain = s.text([['attestation', { color: C.gold }], ['  →  ', { color: C.grey }], ['A', { color: C.blue, italic: true }],
+      ['  →  ', { color: C.grey }], ['B', { color: C.yellow, italic: true }]], { size: 30 }).at(640, 530);
+    const cap = s.text('trusting A at registration is enough to trust B', { size: 22, italic: true, color: C.light }).at(640, 590);
+    await s.play(write(chain, { dur: 1.2 }));
+    await s.play(fadeIn(cap, { dy: -10 }), indicate(B, { color: C.white, scale: 1.06 }));
   };
 
   /* ================================================================== */
@@ -612,16 +699,27 @@
   SC.signal = async (s) => {
     const L = authList(s, { cy: 400 });
     const slot = dashedRect(s, 400, 96).at(L.slotX, L.y);
-    const A = K.cardA(s, 't₁').at(L.xs[0], L.y);
+    let A = K.cardA(s, 't₁').at(L.xs[0], L.y);
     const B = K.cardB(s, 't₂').at(L.xs[1], L.y);
     const sv = K.server(s, 'shrine.com').at(1080, 250);
     const nameAt = (i) => [L.xs[i], L.y + 80];
     let names = [0, 1].map((i) => s.text('alice', { size: 17, font: 'mono', color: C.light }).at(...nameAt(i)));
     const reqAt = [L.slotX, 170];
+    // The pill stays where it lands until the next signal* call replaces it.
+    let lastPill = null;
     const send = async (label, o = {}) => {
       const p = K.pill(s, label, C.teal, { size: o.size ?? 16 });
+      if (lastPill) await s.play(fadeOut(lastPill, { dur: 0.4 }));
       await K.travel(s, p, [[1010, 270], reqAt], { dur: 1.2 });
+      lastPill = p;
       return p;
+    };
+    // Subtitle naming the signal* method being shown; swapped as the method changes.
+    let sub = null;
+    const subtitle = async (name) => {
+      const next = s.text(name, { size: 26, font: 'mono', color: C.teal, anchor: 'start' }).at(70, 90);
+      await s.play(...(sub ? [fadeOut(sub, { dy: -10, dur: 0.4 })] : []), fadeIn(next, { dy: 10, dur: 0.5 }));
+      sub = next;
     };
 
     s.notes('Signal methods treat the list as <b>one</b> credential, for backwards compatibility and ease of deployment.');
@@ -629,32 +727,48 @@
     await s.play(fadeIn(L.chip, { dx: -20 }), create(L.arr, { dur: 0.6 }), fadeIn(slot), create(A), create(B), fadeIn(names[0]), fadeIn(names[1]));
 
     await s.step('<code>signalCurrentUserDetails</code> updates <b>every</b> credential in the list, including shadowed ones.');
+    await subtitle('signalCurrentUserDetails');
     let p = await send('signalCurrentUserDetails(name: "alice.smith")', { size: 15 });
     const names2 = [0, 1].map((i) => s.text('alice.smith', { size: 17, font: 'mono', color: C.green }).at(...nameAt(i)));
-    await s.play(fadeOut(p), ...names.map((n) => fadeOut(n, { dy: -10, dur: 0.4 })), ...names2.map((n) => fadeIn(n, { dy: 10 })));
+    await s.play(...names.map((n) => fadeOut(n, { dy: -10, dur: 0.4 })), ...names2.map((n) => fadeIn(n, { dy: 10 })));
     await s.play(indicate(names2[0], { color: C.green }), indicate(names2[1], { color: C.green }));
     names = names2;
 
     await s.step('<code>signalUnknownCredential(B)</code>: B is the back of the list, so <b>all</b> credentials in the list are hidden or erased.');
+    await subtitle('signalUnknownCredential');
     p = await send([['signalUnknownCredential(', {}], ['B', { color: C.yellow }], [')', {}]]);
     const hid = s.text('hidden', { size: 20, italic: true, color: C.grey }).at(L.slotX, L.y - 74);
-    await s.play(fadeOut(p), to(A, { o: 0.2 }), to(B, { o: 0.2 }), to(names[0], { o: 0.2 }), to(names[1], { o: 0.2 }), fadeIn(hid));
+    await s.play(to(A, { o: 0.2 }), to(B, { o: 0.2 }), to(names[0], { o: 0.2 }), to(names[1], { o: 0.2 }), fadeIn(hid));
 
     await s.step('<code>signalUnknownCredential(A)</code>: A is shadowed. There is no valid use case, so it probably means an RP bug: <b>do nothing</b>.');
     await s.play(...[A, B, names[0], names[1]].map((m) => to(m, { o: 1 }, { dur: 0.6 })), fadeOut(hid, { dur: 0.6 }));
     p = await send([['signalUnknownCredential(', {}], ['A', { color: C.blue }], [')', {}]]);
     const nop = s.text('no-op', { size: 22, italic: true, color: C.grey }).at(L.xs[0], L.y - 66);
-    await s.play(fadeOut(p), write(nop, { dur: 0.6 }), indicate(A, { color: C.grey, scale: 1.04 }));
+    await s.play(write(nop, { dur: 0.6 }), indicate(A, { color: C.grey, scale: 1.04 }));
 
-    await s.step('<code>signalAllAcceptedCredentials([A])</code> is processed like an allow-list: the newest match, A, is kept, and every other credential is erased.');
+    await s.step('<code>signalAllAcceptedCredentials([B])</code> is processed like an allow-list: the upgrade made it, so the newest match, B, is kept and the backup A is <b>erased</b>.');
     await s.play(fadeOut(nop));
+    await subtitle('signalAllAcceptedCredentials');
+    p = await send([['signalAllAcceptedCredentials([ ', {}], ['B', { color: C.yellow }], [' ])', {}]], { size: 15 });
+    let box = scanBox(s, L.xs[1], L.y);
+    await s.play(create(box, { dur: 0.5 }));
+    let c1 = K.check(s, C.green, 0.9).at(L.xs[1], L.y - 66);
+    await s.play(create(c1, { dur: 0.4 }));
+    await s.play(recolor(A, C.red, { dur: 0.5 }), recolor(names[0], C.red, { dur: 0.5 }));
+    await s.play(uncreate(A, { dur: 0.8 }), fadeOut(names[0]));
+    await s.play(fadeOut(box), fadeOut(c1));
+
+    await s.step('If instead the upgrade was lost, <code>signalAllAcceptedCredentials([A])</code> keeps A, the newest match, and erases B.');
+    A = K.cardA(s, 't₁').at(L.xs[0], L.y);
+    names[0] = s.text('alice.smith', { size: 17, font: 'mono', color: C.green }).at(...nameAt(0));
+    await s.play(fadeIn(A, { dy: -30 }), fadeIn(names[0], { dy: -30 }));
     p = await send([['signalAllAcceptedCredentials([ ', {}], ['A', { color: C.blue }], [' ])', {}]], { size: 15 });
-    const box = scanBox(s, L.xs[1], L.y);
-    await s.play(create(box, { dur: 0.5 }), fadeOut(p));
+    box = scanBox(s, L.xs[1], L.y);
+    await s.play(create(box, { dur: 0.5 }));
     const x1 = K.cross(s, C.grey, 0.8).at(L.xs[1], L.y - 66);
     await s.play(create(x1, { dur: 0.4 }));
     await s.play(to(box, { x: L.xs[0] }, { dur: 0.7 }));
-    const c1 = K.check(s, C.green, 0.9).at(L.xs[0], L.y - 66);
+    c1 = K.check(s, C.green, 0.9).at(L.xs[0], L.y - 66);
     await s.play(create(c1, { dur: 0.4 }));
     await s.play(recolor(B, C.red, { dur: 0.5 }), recolor(names[1], C.red, { dur: 0.5 }));
     await s.play(uncreate(B, { dur: 0.8 }), fadeOut(names[1]), fadeOut(x1));
@@ -805,51 +919,84 @@
   };
 
   /* ================================================================== */
-  /* 18. alternatives                                                   */
+  /* appendix: CMTG keys across trust groups                            */
   /* ================================================================== */
-  SC.alternatives = async (s) => {
-    const LX = 360, RX = 920, BASE = 640;
-    const left = ['preferredAlgs', 'createAlgs', 'createExtensions', 'deleteCredentials',
-      'existingCredentials', 'supportedAlgs', 'createdCredentialAuthData', 'deletedCredentials', 'maxCredentialsPerAccount'];
-    const right = ['algUpgrade.pubKeyCredParams', 'algUpgrade.authenticatorData', 'restoreCredentials', 'existingCredentials'];
-    const tL = s.text([['algPolicy', { font: 'mono', color: C.gold }]], { size: 30 }).at(LX, 70);
-    const sL = s.text('Microsoft proposal', { size: 18, italic: true, color: C.grey }).at(LX, 106);
-    const tR = s.text('this proposal', { size: 30, color: C.yellow }).at(RX, 70);
-    const sR = s.text('restoreCredentials + algUpgrade', { size: 18, italic: true, color: C.grey }).at(RX, 106);
-    const gL = s.line(LX - 200, BASE + 26, LX + 200, BASE + 26, { color: C.dim, sw: 3 });
-    const gR = s.line(RX - 200, BASE + 26, RX + 200, BASE + 26, { color: C.dim, sw: 3 });
-    const chip = (t, x, y, color) => s.g(
-      s.rect(350, 38, { color, sw: 1.8, fill: color, fo: 0.1, rx: 8 }),
-      s.text(t, { size: 16, font: 'mono', color }),
-    ).at(x, y);
+  SC.cmtg = async (s) => {
+    /* ---- account: synced passkeys on top, trust groups (with their CMTG keys) below ---- */
+    const acct = K.panel(s, 560, 570, 'account').at(340, 400);
+    const pkLbl = s.text('synced passkeys', { size: 15, italic: true, color: C.grey, anchor: 'start' }).at(90, 160);
+    const credAt = (i) => [175 + i * 150, 205];
+    const a = mini(s, 'A', ...credAt(0));
+    const group = (n, y) => ({ y, p: K.panel(s, 500, 150, `trust group ${n}`, { size: 18 }).at(340, y) });
+    const g1 = group(1, 360), g2 = group(2, 560);
+    const keyAt = (g, col) => [205 + col * 230, g.y + 15];
+    const cmtgKey = (alg, color, at) => K.chip(s, `CMTG · ${alg}`, color, { w: 200, size: 15 }).at(...at);
+    const k1e = cmtgKey('ECDSA', C.blue, keyAt(g1, 0)), k2e = cmtgKey('ECDSA', C.blue, keyAt(g2, 0));
 
-    s.notes('<code>algPolicy</code> keeps a credential for <b>every</b> algorithm side by side, as insurance in case a new algorithm breaks.');
-    await s.play(write(tL), fadeIn(sL), create(gL, { dur: 0.6 }));
+    /* ---- relying party ---- */
+    const sv = K.server(s, 'shrine.com').at(1040, 165);
+    const db = K.panel(s, 440, 170, 'CMTG key shrine.com has on file', { size: 16, italic: true }).at(1040, 565);
+    const rowY = [545, 605];
+    const rowLbl = [1, 2].map((n, i) => s.text(`group ${n}`, { size: 16, font: 'mono', color: C.light, anchor: 'start' }).at(842, rowY[i]));
+    const dbChip = (alg, color, i) => K.chip(s, alg, color, { w: 130, h: 32, size: 14 }).at(1010, rowY[i]);
+    const d1e = dbChip('ECDSA', C.blue, 0), d2e = dbChip('ECDSA', C.blue, 1);
+    const SV = [975, 165];
+    const out = (g) => [620, g.y];
+    const keysPill = () => K.pill(s, [['cmtgKeys: [ ', {}], ['ECDSA', { color: C.blue }], [', ', {}], ['ML-DSA', { color: C.yellow }], [' ]', {}]], C.light, { size: 15 });
 
-    await s.step('That means choosing a preferred algorithm per request, deleting credentials explicitly, and extra extension plumbing.');
-    const cl = left.map((t, i) => chip(t, LX, BASE - i * 46, C.gold));
-    await s.play(lagged(cl.map((c) => fadeIn(c, { dy: -60, ease: Ease.out })), { dur: 3.2 }));
-    const nL = s.text('9 new fields', { size: 22, color: C.gold }).at(LX, BASE + 60);
-    await s.play(write(nL));
+    /** The authenticator's response: both CMTG keys, each with its own signature. */
+    const response = () => {
+      const box = K.panel(s, 390, 116, 'response · cmtgKeys', { size: 15, italic: true }).at(1040, 365);
+      const l1 = s.text([['CMTG · ECDSA ', { color: C.blue }], [' signature ', { color: C.grey }], ['σ', { color: C.blue }]], { size: 16, font: 'mono', anchor: 'start' }).at(866, 365);
+      const l2 = s.text([['CMTG · ML-DSA', { color: C.yellow }], [' signature ', { color: C.grey }], ['σ', { color: C.yellow }]], { size: 16, font: 'mono', anchor: 'start' }).at(866, 397);
+      return s.g(box, l1, l2);
+    };
+    /** "✓ provides trust", pointing at the ECDSA signature in the response. */
+    const trust = () => {
+      const t = s.text([['✓ ', { color: C.green }], ['provides trust', { color: C.green, italic: true }]], { size: 21 }).at(735, 292);
+      const arr = s.arrow(770, 310, 858, 358, { color: C.green, sw: 2.5, head: 11 });
+      return [t, arr];
+    };
 
-    await s.step('This proposal adds far less: one list of algorithms in, one new credential out, and the backup report.');
-    await s.play(write(tR), fadeIn(sR), create(gR, { dur: 0.6 }));
-    const cr = right.map((t, i) => chip(t, RX, BASE - i * 46, C.yellow));
-    await s.play(lagged(cr.map((c) => fadeIn(c, { dy: -60, ease: Ease.out })), { dur: 1.6 }));
-    const nR = s.text('4 new fields', { size: 22, color: C.yellow }).at(RX, BASE + 60);
-    await s.play(write(nR));
+    s.notes('alice\'s <b>account</b> holds her synced passkey A, available on every device. Her devices form two <b>trust groups</b>, and each group has its own CMTG key, which uses the same algorithm as the credential.');
+    await s.play(create(acct.box, { dur: 0.8 }), fadeIn(acct.title), fadeIn(sv), fadeIn(db));
+    await s.play(fadeIn(pkLbl), create(a), fadeIn(g1.p), fadeIn(g2.p));
+    await s.play(fadeIn(k1e), fadeIn(k2e), ...rowLbl.map((t) => fadeIn(t)), fadeIn(d1e), fadeIn(d2e));
 
-    await s.step('And insurance against a broken algorithm is better served by <b>hybrid signatures</b>: one credential, two algorithms, both must hold.');
-    await s.play(lagged([...cl, ...cr, tL, sL, tR, sR, gL, gR, nL, nR].map((m) => fadeOut(m, { dur: 0.4 })), { dur: 1.2 }));
-    const box = s.rect(520, 190, { color: C.light, sw: 2, fill: C.dark, fo: 0.8, rx: 18 }).at(640, 340);
-    const k1 = K.key(s, C.blue).at(540, 330).set({ s: 1.6, r: -30 });
-    const plus = s.text('+', { size: 50, color: C.light }).at(640, 330);
-    const k2 = K.key(s, C.yellow).at(740, 330).set({ s: 1.6, r: -30 });
-    const lab = s.text([['ECDSA', { color: C.blue }], ['  and  ', { color: C.grey }], ['ML-DSA', { color: C.yellow }]], { size: 22, font: 'mono' }).at(640, 400);
-    const cap = s.text('hybrid: a forgery must break both', { size: 24, italic: true, color: C.light }).at(640, 490);
-    await s.play(create(box));
-    await s.play(create(k1), write(plus), create(k2));
-    await s.play(write(lab), write(cap, { dur: 1.4 }));
+    await s.step('alice signs in from a device in trust group 1 with <code>algUpgrade</code>: B is created, signed by A. B is a synced passkey, so it belongs to the account and is available to <b>both</b> trust groups.');
+    await K.travel(s, K.pill(s, 'get() + algUpgrade', C.teal), [SV, out(g1)], { out: true, dur: 1.2 });
+    const b = mini(s, 'B', ...credAt(1));
+    await s.play(create(b));
+
+    await s.step('Trust group 1 has no ML-DSA CMTG key yet, so it mints one. The response returns <b>both</b> CMTG keys, each with its own signature: <code>cmtgKeys</code> becomes a list (w3c/webauthn#2472).');
+    const k1m = cmtgKey('ML-DSA', C.yellow, keyAt(g1, 1));
+    await s.play(create(k1m), K.flash(s, ...keyAt(g1, 1), C.yellow));
+    await K.travel(s, keysPill(), [out(g1), SV], { out: true, dur: 1.3 });
+    const r1 = response();
+    await s.play(fadeIn(r1, { dy: 10 }));
+
+    await s.step('shrine.com already trusts group 1\'s ECDSA CMTG key, so a valid ECDSA signature in the same response <b>provides trust</b> for the new ML-DSA key. shrine.com replaces the key it has on file.');
+    const t1 = trust();
+    await s.play(fadeIn(t1[0], { dx: -10 }), create(t1[1], { dur: 0.6 }));
+    await s.play(...swap(d1e, dbChip('ML-DSA', C.yellow, 0)));
+
+    await s.step('A lost CMTG key isn\'t a lock-out, so trust group 1 can <b>drop</b> its ECDSA key right away.');
+    await s.play(fadeOut(r1), ...t1.map((m) => fadeOut(m)), recolor(k1e, C.red, { dur: 0.5 }));
+    await s.play(uncreate(k1e, { dur: 0.8 }));
+
+    await s.step('Later, alice signs in from trust group 2. It already has B, so this is a <b>normal</b> sign-in: no new passkey. But trust group 2 has no ML-DSA CMTG key yet, so it mints one; the ECDSA signature provides trust, shrine.com replaces group 2\'s key, and the group drops its ECDSA key.');
+    await K.travel(s, K.pill(s, 'get()', C.teal), [SV, out(g2)], { out: true, dur: 1.2 });
+    await s.play(indicate(b, { color: C.white, scale: 1.08 }));
+    const k2m = cmtgKey('ML-DSA', C.yellow, keyAt(g2, 1));
+    await s.play(create(k2m), K.flash(s, ...keyAt(g2, 1), C.yellow));
+    await K.travel(s, keysPill(), [out(g2), SV], { out: true, dur: 1.3 });
+    const r2 = response();
+    await s.play(fadeIn(r2, { dy: 10 }));
+    const t2 = trust();
+    await s.play(fadeIn(t2[0], { dx: -10 }), create(t2[1], { dur: 0.6 }));
+    await s.play(...swap(d2e, dbChip('ML-DSA', C.yellow, 1)));
+    await s.play(fadeOut(r2), ...t2.map((m) => fadeOut(m)), recolor(k2e, C.red, { dur: 0.5 }));
+    await s.play(uncreate(k2e, { dur: 0.8 }));
   };
 
   window.SCENES = SC;

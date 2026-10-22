@@ -19,7 +19,7 @@
     <div class="title-wrap">
       <h1>WebAuthn<br><span class="y">Algorithm Upgrades</span></h1>
       <p class="sub">Moving existing credentials to post-quantum algorithms, one sign-in at a time</p>
-      <p class="author">Nina Satragno · Google</p>
+      <p class="author">Nina Satragno · Google · <a href="mailto:nso@google.com">nso@google.com</a></p>
     </div>
     <svg class="motif" viewBox="0 0 360 120" aria-hidden="true">
       <g fill="none" stroke-width="3.5" stroke-linecap="round">
@@ -34,31 +34,31 @@
 
   <!-- ============================================================ 2 -->
   <section class="slide" data-scene="threat">
-    <header class="shead"><p class="kicker">Motivation</p><h2>Introduction</h2></header>
+    <header class="shead"><h2>Introduction</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
     <aside class="notes">Keep this short: the WG knows the PQC story.</aside>
   </section>
 
   <!-- ============================================================ 4a -->
-  <section class="slide" data-scene="naiveWrongAuth" data-title="Naive upgrade (1/2): the wrong authenticator">
-    <header class="shead"><p class="kicker">Why not just get() then create()? · 1/2</p><h2>Using existing APIs</h2></header>
+  <section class="slide" data-scene="naiveWrongAuth" data-title="Using existing APIs (1/2)">
+    <header class="shead"><h2>Using existing APIs</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 4b -->
-  <section class="slide" data-scene="naiveLost" data-continue data-title="Naive upgrade (2/2): the credential never reaches the server">
-    <header class="shead"><p class="kicker">Why not just get() then create()? · 2/2</p><h2>Using existing APIs</h2></header>
+  <section class="slide" data-scene="naiveLost" data-continue data-title="Using existing APIs (2/2)">
+    <header class="shead"><h2>Using existing APIs</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ requirements -->
-  <section class="slide" data-title="What a solution needs">
-    <header class="shead"><p class="kicker">Requirements</p><h2>What a solution needs</h2></header>
+  <section class="slide" data-title="Requirements">
+    <header class="shead"><h2>Requirements</h2></header>
     <div class="body">
       <ul>
-        <li class="good" data-step="1"><b>One ceremony</b>: the upgrade happens inside a normal sign-in.</li>
-        <li class="good" data-step="2"><b>Same authenticator</b>: the new credential lives where the old one does.</li>
-        <li class="good" data-step="3"><b>Recoverable</b>: a response lost in transit doesn't lock the user out.</li>
+        <li class="good" data-step="1"><b>One ceremony</b></li>
+        <li class="good" data-step="2"><b>Same authenticator</b></li>
+        <li class="good" data-step="3"><b>Recoverable</b></li>
       </ul>
     </div>
     <aside class="notes">So, from the last two slides: what does a real solution need?</aside>
@@ -69,108 +69,103 @@
 
   <!-- ============================================================ 5 -->
   <section class="slide" data-scene="capabilities">
-    <header class="shead"><p class="kicker">Proposal</p><h2>Two independent capabilities</h2></header>
+    <header class="shead"><h2>Two independent capabilities</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
     <aside class="notes">We propose two independent additions to WebAuthn, one per capability.</aside>
   </section>
 
+  <!-- ============================================================ separator 1 -->
+  <section class="slide divider b" data-title="① Back up and restore credentials">
+    <div class="div-wrap">
+      <p class="eyebrow">Part 1</p>
+      <h1><span class="num">①</span>Back up and restore credentials</h1>
+      <span class="ext">restoreCredentials</span>
+    </div>
+    <aside class="notes">First capability: keeping backups, so a lost upgrade never locks anyone out.</aside>
+  </section>
+
   <!-- ============================================================ 6 -->
   <section class="slide" data-scene="stack">
-    <header class="shead"><p class="kicker">Part 1 · Backing up &amp; restoring credentials</p><h2>One slot → a list</h2></header>
+    <header class="shead"><h2>Backing up credentials</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 7 -->
-  <section class="slide" data-scene="cleanup">
-    <header class="shead"><p class="kicker">Part 1 · Backing up &amp; restoring credentials</p><h2>The cleanup rule</h2></header>
+  <section class="slide" data-scene="cleanup" data-title="Getting an assertion with an allow-list">
+    <header class="shead"><h2>Getting an assertion with an allow-list</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 8 -->
-  <section class="slide" data-scene="restore" data-title="restoreCredentials extension">
-    <header class="shead"><p class="kicker">Part 1 · Backing up &amp; restoring credentials</p><h2>The <code>restoreCredentials</code> extension</h2></header>
+  <section class="slide" data-scene="restore" data-title="Getting an assertion with an empty allow-list">
+    <header class="shead"><h2>Getting an assertion with an empty allow-list</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ separator 2 -->
+  <section class="slide divider y" data-title="② Algorithm upgrade">
+    <div class="div-wrap">
+      <p class="eyebrow">Part 2</p>
+      <h1><span class="num">②</span>Algorithm upgrade</h1>
+      <span class="ext">algUpgrade</span>
+    </div>
+    <aside class="notes">Second capability: creating the new credential inside an ordinary sign-in.</aside>
   </section>
 
   <!-- ============================================================ 10 -->
   <section class="slide" data-scene="upgrade">
-    <header class="shead"><p class="kicker">Part 2 · The algUpgrade extension</p><h2>The upgrade happens inside the sign-in</h2></header>
+    <header class="shead"><h2>Combining sign-in and upgrade</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 11 -->
-  <section class="slide" data-title="algUpgrade: IDL & processing">
-    <header class="shead"><p class="kicker">Part 2 · The algUpgrade extension</p><h2>IDL &amp; processing</h2></header>
-    <div class="body" style="top: 128px;">
-      <div class="cols code-left">
-        <pre class="tight"><code>dictionary AuthenticationExtensionsAlgUpgradeInputs {
-  // Parameters for the new credential.
-<span class="hl" data-step="1">  required sequence&lt;PublicKeyCredentialParameters&gt; pubKeyCredParams;</span>
-};
-
-dictionary AuthenticationExtensionsAlgUpgradeOutputs {
-  // Make credential authenticator data.
-<span class="hl" data-step="3">  ArrayBuffer authenticatorData;</span>
-};
-
-// Signed extension outputs.
-$$extensionOutput //= (
-  algUpgrade: {
-<span class="hl" data-step="3">    authData: bstr,</span>
-  }
-)</code></pre>
-        <ul class="small">
-          <li data-step="1">Pick the first alg in <code>pubKeyCredParams</code> the authenticator supports.</li>
-          <li data-step="2">Already has a credential with that alg for this user + RP? Normal assertion.</li>
-          <li data-step="3">Otherwise mint one. The <b>old</b> credential signs the assertion, which carries the new <code>authData</code>.</li>
-        </ul>
-      </div>
-      <p class="foot" data-step="4">Alternative: sign a hash of the <code>authData</code>, or of credential ID + COSE key. Is the extra complexity warranted?</p>
-    </div>
-    <aside class="notes">The extension has a single input: the list of acceptable algorithms, in order of preference.</aside>
-    <aside class="notes" data-for="1">The authenticator walks pubKeyCredParams and picks the first algorithm it supports.</aside>
-    <aside class="notes" data-for="2">If it already has a credential for that algorithm, this is just a normal assertion. That makes the request idempotent.</aside>
-    <aside class="notes" data-for="3">Otherwise it creates a new credential and returns its authenticator data inside the signed extension outputs of the old credential. That's the transfer of trust.</aside>
-    <aside class="notes" data-for="4">Footnote from the explainer: we could sign a hash instead of the whole authData. Not obviously worth it.</aside>
+  <section class="slide" data-scene="upgradeAgain" data-continue data-title="Combining sign-in and upgrade: next sign-in">
+    <header class="shead"><h2>Combining sign-in and upgrade</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 12 -->
   <section class="slide" data-scene="extensions">
-    <header class="shead"><p class="kicker">Part 2 · The algUpgrade extension</p><h2>What carries over</h2></header>
+    <header class="shead"><h2>What carries over</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
-  <!-- ============================================================ 13 -->
-  <section class="slide" data-title="CMTG keys">
-    <header class="shead"><p class="kicker">Part 2 · The algUpgrade extension</p><h2>Credential Manager Trust Group keys</h2></header>
-    <div class="body">
-      <p class="lead">CMTG keys use the same algorithm as the credential's private key.</p>
-      <div class="keys" data-step="1">
-        <span class="pill b">cmtgKey</span>
-        <span class="arrowtxt">⟶</span>
-        <span>cmtgKeys: [ <span class="pill b">ECDSA</span> <span class="pill y">ML-DSA</span> ]</span>
-      </div>
-      <ul class="small">
-        <li data-step="1">Return a <b>list</b> of keys instead of a single key (<a href="https://github.com/w3c/webauthn/issues/2472">w3c/webauthn#2472</a>).</li>
-        <li data-step="2">No eligible key uses the new algorithm? Mint one and return it <b>alongside</b> the existing key, transferring trust.</li>
-        <li data-step="3">A lost CMTG key is not a lock-out (RPs already handle new trust groups), so the old-algorithm key can be dropped right away.</li>
-      </ul>
-    </div>
-    <aside class="notes">CMTG keys are specified to be the same algorithm as the private key, so they need to be upgraded too.</aside>
-    <aside class="notes" data-for="1">Today an assertion can return a single CMTG key. We should change that to a list (issue 2472).</aside>
-    <aside class="notes" data-for="2">If none of the eligible keys uses the selected algorithm, mint a new key and return it next to the old one.</aside>
-    <aside class="notes" data-for="3">Unlike passkeys, losing a new CMTG key in transit doesn't lock anyone out, so authenticators can drop the old key immediately.</aside>
+  <!-- ============================================================ attestation -->
+  <section class="slide" data-scene="attestation">
+    <header class="shead"><h2>Attestation</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
+
 
   <!-- ============================================================ 14 -->
   <section class="slide" data-scene="signal" data-title="Interaction with the Signal API">
-    <header class="shead"><p class="kicker">Part 2 · The algUpgrade extension</p><h2>Interaction with the Signal API</h2></header>
+    <header class="shead"><h2>Interaction with the Signal API</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ Q&A -->
+  <section class="slide qa" data-title="Q&A / Discussion">
+    <h1>Q&amp;A <span class="sep">/</span> Discussion</h1>
+    <aside class="notes">Open the floor for questions and discussion.</aside>
+  </section>
+
+  <!-- ============================================================ appendix -->
+  <section class="slide divider g" data-title="Appendix">
+    <div class="div-wrap">
+      <h1>Appendix</h1>
+    </div>
+    <aside class="notes">Backup slides, in case they come up during discussion.</aside>
+  </section>
+
+  <!-- ============================================================ CMTG (appendix) -->
+  <section class="slide" data-scene="cmtg" data-title="CMTG keys">
+    <header class="shead"><h2>Credential Manager Trust Group keys</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 15 -->
   <section class="slide" data-title="RP integration">
-    <header class="shead"><p class="kicker">Part 3 · The relying party's view</p><h2>RP integration</h2></header>
+    <header class="shead"><h2>RP integration</h2></header>
     <div class="body" style="top: 128px;">
       <div class="cols code-two">
         <pre class="tight"><code>// client.js: accounts/signin
@@ -212,52 +207,14 @@ if (newCredential) {
 
   <!-- ============================================================ 16 -->
   <section class="slide" data-scene="lostBank" data-title="Lost upgrade: allow-list flow">
-    <header class="shead"><p class="kicker">Part 3 · The relying party's view</p><h2>Lost upgrade: allow-list flow</h2></header>
+    <header class="shead"><h2>Lost upgrade: allow-list flow</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 17 -->
   <section class="slide" data-scene="lostShrine" data-title="Lost upgrade: usernameless flow">
-    <header class="shead"><p class="kicker">Part 3 · The relying party's view</p><h2>Lost upgrade: usernameless flow</h2></header>
+    <header class="shead"><h2>Lost upgrade: usernameless flow</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
-  </section>
-
-  <!-- ============================================================ 18 -->
-  <section class="slide" data-scene="alternatives" data-title="Compared with algPolicy">
-    <header class="shead"><p class="kicker">Wrap-up</p><h2>Compared with <code>algPolicy</code></h2></header>
-    <svg class="scene" viewBox="0 0 1280 720"></svg>
-  </section>
-
-  <!-- ============================================================ 19 -->
-  <section class="slide" data-title="Discussion">
-    <header class="shead"><p class="kicker">Wrap-up</p><h2>Discussion</h2></header>
-    <div class="body">
-      <ul>
-        <li class="q" data-step="1">Sign the new credential's full <code>authData</code>, or a hash of it (or of credential ID + COSE key)?</li>
-        <li class="q" data-step="2">Should restoring on allow-list requests be unconditional for capable authenticators, independent of the extension?</li>
-        <li class="q" data-step="3">CMTG: return a list of keys instead of a single key (<a href="https://github.com/w3c/webauthn/issues/2472">#2472</a>)?</li>
-        <li class="q" data-step="4">Usernameless recovery costs a second ceremony. Acceptable, given the alternatives?</li>
-      </ul>
-    </div>
-    <aside class="notes">Questions for the group.</aside>
-    <aside class="notes" data-for="1">Signed output: the full authData is simplest. A hash is smaller but adds complexity.</aside>
-    <aside class="notes" data-for="2">The explainer proposes that restore-on-allow-list always applies for supporting authenticators, even without the extension.</aside>
-    <aside class="notes" data-for="3">CMTG keys: single key to a list, issue 2472.</aside>
-    <aside class="notes" data-for="4">Usernameless recovery needs two ceremonies. Alternatives that avoid it have worse trade-offs.</aside>
-  </section>
-
-  <!-- ============================================================ 20 -->
-  <section class="slide" data-title="Next steps">
-    <header class="shead"><p class="kicker">Wrap-up</p><h2>Next steps</h2></header>
-    <div class="body">
-      <ul>
-        <li data-step="1">Ask: adopt the <b>Algorithm Upgrades</b> explainer as the WG's direction for PQC migration.</li>
-        <li data-step="2">Then spec PRs for <code>restoreCredentials</code> and <code>algUpgrade</code>, and the CMTG list change.</li>
-        <li data-step="3">Animated walkthrough of this proposal: <a href="../waau-anim-demo/site/">waau-anim-demo</a></li>
-      </ul>
-      <p class="lead" style="margin-top: 70px;" data-step="4">Thank you! <span class="y">Questions?</span></p>
-    </div>
-    <aside class="notes">Wrap up and ask for adoption.</aside>
   </section>
 
 </div>
