@@ -999,5 +999,143 @@
     await s.play(uncreate(k2e, { dur: 0.8 }));
   };
 
+  /* ================================================================== */
+  /* appendix: the old algorithm is no longer trusted                   */
+  /* ================================================================== */
+  SC.untrusted = async (s) => {
+    const panel = K.panel(s, 300, 330, 'authenticator').at(200, 450);
+    const A = K.cardA(s).at(200, 385);
+    const br = K.browser(s, 220, 140, 'browser').at(640, 455);
+    const sv = K.server(s, 'shrine.com').at(1090, 380);
+    const db = K.db(s).at(1090, 590);
+    const dbA = mini(s, 'A', 1090 + db.slotX, 590 + db.slotY);
+    const ch1 = K.channel(s, 350, 455, 528, 455);
+    const ch2 = K.channel(s, 752, 455, 1022, 410);
+    const status = (y, segs) => s.text(segs, { size: 19, font: 'mono', anchor: 'start' }).at(900, y);
+
+    s.notes('Suppose the upgrade happens <b>late</b>: shrine.com no longer trusts ECDSA, so A\'s signature on its own isn\'t enough.');
+    await s.play(lagged([create(panel.box), fadeIn(panel.title), fadeIn(br), fadeIn(sv), fadeIn(db), fadeIn(ch1), fadeIn(ch2)], { dur: 1.4 }));
+    await s.play(create(A), fadeIn(dbA));
+
+    await s.step('alice signs in with <code>algUpgrade</code> as usual. The authenticator mints B and A signs the assertion that carries it.');
+    await K.travel(s, K.pill(s, 'get() + algUpgrade', C.teal), [[1022, 410], [640, 455], [350, 455]], { out: true, dur: 1.5 });
+    const B = K.cardB(s).at(200, 470);
+    await s.play(create(B));
+    await K.travel(s, K.pill(s, [['assertion(A) + ', {}], ['B', { color: C.yellow }]], C.blue), [[350, 455], [640, 455], [1022, 410]], { out: true, dur: 1.5 });
+
+    await s.step('But shrine.com <b>no longer trusts ECDSA</b>: a valid signature from A could be forged, so it can\'t vouch for B.');
+    const v = status(222, [['verify with A  ', { color: C.light }], ['✗ not trusted', { color: C.red }]]);
+    await s.play(write(v, { dur: 0.9 }), indicate(dbA, { color: C.red, scale: 1.1 }));
+
+    await s.step('So shrine.com <b>steps the user up</b> with something it does trust, e.g. another factor or account recovery.');
+    await K.travel(s, K.pill(s, 'step-up challenge', C.gold), [[1022, 410], [640, 455]], { out: true, dur: 1.2 });
+    const fing = K.finger(s, C.green).at(640, 470);
+    await s.play(create(fing, { dur: 0.6 }));
+    await s.play(fadeOut(fing, { dur: 0.4 }));
+    await K.travel(s, K.pill(s, 'step-up ✓', C.green), [[640, 455], [1022, 410]], { out: true, dur: 1 });
+    const su = status(254, [['step-up  ', { color: C.light }], ['✓', { color: C.green }]]);
+    await s.play(write(su, { dur: 0.8 }));
+
+    await s.step('Only after that <b>trusted</b> ceremony does shrine.com replace A with B. The API never forces it to accept B on A\'s word alone.');
+    const rep = status(286, [['replace with ', { color: C.light }], ['B', { color: C.yellow }]]);
+    await s.play(write(rep, { dur: 0.8 }));
+    const dbB = mini(s, 'B', dbA.x, dbA.y);
+    await s.play(...swap(dbA, dbB));
+  };
+
+  /* ================================================================== */
+  /* algorithm agnostic: A → B → C, driven only by pubKeyCredParams     */
+  /* ================================================================== */
+  SC.agnostic = async (s) => {
+    const Y = 330;
+    const A = K.cardA(s).set({ s: 1.2 }).at(220, Y);
+    const B = K.cardB(s).set({ s: 1.2 }).at(640, Y);
+    const Cc = K.card(s, { id: 'C', alg: 'ML-DSA-65 + Ed25519', color: C.teal, w: 250 }).set({ s: 1.2 }).at(1075, Y);
+    const hop = (x0, x1) => {
+      const arr = s.arrow(x0, Y, x1, Y, { color: C.light, sw: 3 });
+      const lbl = s.text('algUpgrade', { size: 17, font: 'mono', color: C.yellow }).at((x0 + x1) / 2, Y - 28);
+      return [arr, lbl];
+    };
+    const params = (x, list) => {
+      const head = s.text('pubKeyCredParams', { size: 14, font: 'mono', color: C.grey }).at(x, 440);
+      const body = s.text(list, { size: 16, font: 'mono' }).at(x, 470);
+      return s.g(head, body);
+    };
+
+    s.notes('<code>algUpgrade</code> doesn\'t hard-code ML-DSA. It moves a credential to whichever algorithm the RP lists first.');
+    await s.play(create(A));
+
+    await s.step('Today: the RP lists ML-DSA-44 first, so A is upgraded to B.');
+    const [a1, l1] = hop(352, 508);
+    const p1 = params(430, [['[ ', { color: C.light }], ['ML-DSA-44', { color: C.yellow }], [', ', { color: C.light }], ['ECDSA', { color: C.blue }], [' ]', { color: C.light }]]);
+    await s.play(fadeIn(p1, { dy: 10 }));
+    await s.play(create(a1, { dur: 0.7 }), write(l1, { dur: 0.7 }));
+    await s.play(create(B));
+
+    await s.step('Tomorrow: if ML-DSA-44 needs replacing, or the RP wants a <b>hybrid</b> like ML-DSA-65 + Ed25519, it just edits its list. The same flow moves B to C.');
+    const [a2, l2] = hop(772, 918);
+    const p2 = params(850, [['[ ', { color: C.light }], ['ML-DSA-65+Ed25519', { color: C.teal }], [', ', { color: C.light }], ['ML-DSA-44', { color: C.yellow }], [' ]', { color: C.light }]]);
+    await s.play(fadeIn(p2, { dy: 10 }));
+    await s.play(create(a2, { dur: 0.7 }), write(l2, { dur: 0.7 }));
+    await s.play(create(Cc));
+  };
+
+  /* ================================================================== */
+  /* appendix: authenticators evict backups to make space               */
+  /* ================================================================== */
+  SC.storage = async (s) => {
+    s.offset(0, -40);
+    const panel = K.panel(s, 880, 420, 'security key storage').at(560, 390);
+    const rowY = [262, 332, 402, 472];
+    const who = (i, user, rp) => s.text([['{ ', { color: C.grey }], [user, { color: C.white }], [', ', { color: C.grey }], [rp, { color: C.teal }], [' }', { color: C.grey }]],
+      { size: 16, font: 'mono', anchor: 'start' }).at(150, rowY[i]);
+    const card = (id, alg, color, x, i) => K.card(s, { id, alg, color }).set({ s: 0.72 }).at(x, rowY[i]);
+    const w1 = who(0, 'alice', 'shrine.com'), w2 = who(1, 'bob', 'bank.com'), w3 = who(2, 'carol', 'shop.com');
+    const A = card('A', 'ECDSA P-256', C.blue, 520, 0);
+    const bk = s.text('backup', { size: 15, italic: true, color: C.grey }).at(520, rowY[0] + 34);
+    const B = card('B', 'ML-DSA-44', C.yellow, 680, 0);
+    const X = card('X', 'ECDSA P-256', C.green, 520, 1);
+    const Y = card('Y', 'ML-DSA-44', C.maroon, 520, 2);
+
+    // Storage meter: 4 slots.
+    const BAR_W = 600, BAR_X = 600, BAR_Y = 548;
+    const barLbl = s.text('storage', { size: 16, font: 'mono', color: C.grey, anchor: 'start' }).at(170, BAR_Y);
+    const bar = s.rect(BAR_W, 20, { color: C.dim, sw: 2, rx: 10 }).at(BAR_X, BAR_Y);
+    const fill = s.rect(BAR_W, 20, { color: C.red, sw: 0, fill: C.red, fo: 0.55, rx: 10 }).at(BAR_X, BAR_Y);
+    const fr = fill.g.querySelector('rect');
+    let frac = 1;
+    const setFill = (to2, color) => anim(0.8, null, (a) => {
+      const f = lerp(frac, to2, a), w = BAR_W * f;
+      fr.setAttribute('width', w.toFixed(1));
+      fr.setAttribute('x', (-BAR_W / 2).toFixed(1));
+      if (color) fr.setAttribute('fill', lerpColor(fr.getAttribute('fill'), color, a));
+      if (a >= 1) frac = to2;
+    });
+
+    s.notes('Security keys have very little storage, and keeping backups uses more of it.');
+    await s.play(create(panel.box, { dur: 0.8 }), fadeIn(panel.title));
+    await s.play(lagged([fadeIn(w1), fadeIn(A), fadeIn(bk), fadeIn(B), fadeIn(w2), fadeIn(X), fadeIn(w3), fadeIn(Y)], { dur: 1.4 }),
+      fadeIn(barLbl), fadeIn(bar), fadeIn(fill));
+    const full = s.text('full', { size: 16, italic: true, color: C.red, anchor: 'start' }).at(BAR_X + BAR_W / 2 + 16, BAR_Y);
+    await s.play(fadeIn(full));
+
+    await s.step('A new site asks to register a passkey, but the key is <b>full</b>.');
+    const req = K.pill(s, [['create() · ', {}], ['dave, news.com', { color: C.white }]], C.teal);
+    await K.travel(s, req, [[1300, rowY[3]], [1140, rowY[3]]], { dur: 1 });
+    await s.play(wiggle(full, { angle: 3 }), indicate(fill, { color: C.red, scale: 1.02 }));
+
+    await s.step('Authenticators may <b>delete old backed-up credentials</b> to make space. A has been superseded by the newer B, so it goes first.');
+    const box = scanBox(s, 520, rowY[0]).set({ s: 0.85 });
+    await s.play(create(box, { dur: 0.5 }));
+    await s.play(recolor(A, C.red, { dur: 0.5 }));
+    await s.play(uncreate(A, { dur: 0.8 }), fadeOut(bk), fadeOut(box), fadeOut(full), setFill(0.75, C.gold));
+
+    await s.step('Now the new passkey fits.');
+    const w4 = who(3, 'dave', 'news.com');
+    const D = card('D', 'ML-DSA-44', C.teal, 520, 3);
+    await s.play(fadeOut(req, { dur: 0.4 }), fadeIn(w4, { dx: -20 }));
+    await s.play(create(D), setFill(1, C.red));
+  };
+
   window.SCENES = SC;
 })();

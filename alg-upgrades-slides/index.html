@@ -59,12 +59,20 @@
         <li class="good" data-step="1"><b>One ceremony</b></li>
         <li class="good" data-step="2"><b>Same authenticator</b></li>
         <li class="good" data-step="3"><b>Recoverable</b></li>
+        <li class="good" data-step="4"><b>Algorithm agnostic</b></li>
       </ul>
     </div>
     <aside class="notes">So, from the last two slides: what does a real solution need?</aside>
     <aside class="notes" data-for="1">One ceremony: no second prompt. The upgrade rides along an ordinary get().</aside>
     <aside class="notes" data-for="2">Same authenticator: the new credential must be created where the existing one lives.</aside>
     <aside class="notes" data-for="3">Recoverable: if the response never reaches the server, the user isn't locked out.</aside>
+    <aside class="notes" data-for="4">Algorithm agnostic: nothing is specific to ML-DSA. The same mechanism moves credentials to whatever algorithm comes next.</aside>
+  </section>
+
+  <!-- ============================================================ algorithm agnostic -->
+  <section class="slide" data-scene="agnostic" data-title="Algorithm agnostic">
+    <header class="shead"><h2>Algorithm agnostic</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
   <!-- ============================================================ 5 -->
@@ -149,6 +157,52 @@
       <h1>Appendix</h1>
     </div>
     <aside class="notes">Backup slides, in case they come up during discussion.</aside>
+  </section>
+
+  <!-- ============================================================ untrusted (appendix) -->
+  <section class="slide" data-scene="untrusted" data-title="When the old algorithm is no longer trusted">
+    <header class="shead"><h2>When the old algorithm is no longer trusted</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ storage (appendix) -->
+  <section class="slide" data-scene="storage" data-title="Making space: evicting backups">
+    <header class="shead"><h2>Making space: evicting backups</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ feature detection (appendix) -->
+  <section class="slide" data-title="Feature detection">
+    <header class="shead"><h2>Feature detection</h2></header>
+    <div class="body" style="top: 128px;">
+      <div class="cols code-left">
+        <pre><code>// Does the browser support the extensions?
+const caps =
+    await PublicKeyCredential.getClientCapabilities();
+<span class="hl" data-step="1">caps['extension:algUpgrade'];          // true / false
+caps['extension:restoreCredentials'];  // true / false</span>
+
+// Authenticator support: just ask.
+const assertion = await navigator.credentials.get({
+  publicKey: {
+    challenge,
+    extensions: {
+<span class="hl" data-step="2">      algUpgrade: { pubKeyCredParams },</span>
+    },
+  },
+});
+<span class="hl" data-step="2">// algUpgrade output present ⇒ upgraded</span></code></pre>
+        <ul class="small">
+          <li data-step="1"><b>Browser:</b> <code>getClientCapabilities()</code> reports whether it can relay the extensions.</li>
+          <li data-step="2"><b>Authenticator:</b> only known per request. Always send <code>algUpgrade</code>: capable authenticators return a new credential, others don't.</li>
+          <li data-step="3"><b>Safe by default:</b> unknown extensions are ignored, so sending it never breaks sign-in.</li>
+        </ul>
+      </div>
+    </div>
+    <aside class="notes">How does an RP know whether this will work? Nothing new is needed: WebAuthn already standardizes extension feature detection.</aside>
+    <aside class="notes" data-for="1">getClientCapabilities() already reports a key "extension:&lt;id&gt;" for every extension the client implements. If it isn't true, the RP may assume the client won't process or forward it.</aside>
+    <aside class="notes" data-for="2">The authenticator side can't be known up front, and that's fine: the RP keeps sending algUpgrade on every sign-in and gets a new credential once the user's authenticator supports it.</aside>
+    <aside class="notes" data-for="3">Like any extension, it's ignored by clients and authenticators that don't understand it, so there's no breakage and no need to target users.</aside>
   </section>
 
   <!-- ============================================================ Signal API (appendix) -->
