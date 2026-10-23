@@ -18,9 +18,13 @@
   <section class="slide" data-title="WebAuthn Algorithm Upgrades">
     <div class="title-wrap">
       <h1>WebAuthn<br><span class="y">Algorithm Upgrades</span></h1>
-      <p class="sub">Moving existing credentials to post-quantum algorithms, one sign-in at a time</p>
+      <p class="sub">Moving existing credentials to post-quantum algorithms</p>
       <p class="author">Nina Satragno · Google · <a href="mailto:nso@google.com">nso@google.com</a></p>
     </div>
+    <a class="qr-box" href="https://nsatragno.github.io/passkey-demos/alg-upgrades-slides" aria-label="QR code for the slides">
+      <svg viewBox="0 0 37 37" class="qr" shape-rendering="crispEdges"><path fill="#e4e1da" d="M0 0h37v37h-37z"/><path stroke="#0b0c10" d="M2 2.5h7m1 0h1m1 0h5m2 0h2m2 0h2m3 0h7m-33 1h1m5 0h1m1 0h4m2 0h1m4 0h4m1 0h1m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m1 0h9m2 0h3m1 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m4 0h2m1 0h1m2 0h1m2 0h3m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m2 0h1m1 0h1m4 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m4 0h1m5 0h2m3 0h3m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-24 1h5m2 0h1m1 0h2m2 0h1m-23 1h1m2 0h7m4 0h2m1 0h1m1 0h2m2 0h1m1 0h1m2 0h1m1 0h3m-33 1h5m3 0h2m2 0h1m2 0h1m3 0h1m1 0h3m4 0h3m-27 1h3m1 0h2m1 0h2m1 0h3m1 0h1m2 0h5m2 0h5m-33 1h2m1 0h3m1 0h1m2 0h3m2 0h1m1 0h1m5 0h1m1 0h1m1 0h1m2 0h3m-33 1h1m3 0h1m1 0h2m3 0h4m1 0h1m1 0h1m1 0h1m2 0h2m1 0h2m3 0h1m-30 1h1m1 0h1m2 0h1m1 0h3m1 0h4m1 0h1m3 0h2m1 0h1m1 0h1m1 0h2m-26 1h3m1 0h1m3 0h4m2 0h2m5 0h1m1 0h3m-30 1h5m2 0h1m1 0h1m1 0h3m5 0h1m3 0h2m1 0h4m1 0h1m-31 1h2m1 0h2m2 0h2m1 0h1m1 0h2m4 0h1m1 0h2m1 0h4m-29 1h1m1 0h1m1 0h2m1 0h3m3 0h1m1 0h2m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m-31 1h2m2 0h1m1 0h2m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h2m1 0h1m-31 1h1m4 0h1m2 0h1m4 0h2m5 0h1m1 0h1m3 0h3m-31 1h1m1 0h2m2 0h3m2 0h2m1 0h1m1 0h2m1 0h1m4 0h1m2 0h1m1 0h1m1 0h1m-32 1h1m3 0h1m3 0h3m1 0h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h2m-29 1h1m3 0h1m1 0h1m2 0h1m5 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h3m-33 1h1m1 0h1m1 0h1m3 0h1m2 0h2m1 0h1m1 0h4m2 0h1m3 0h6m-32 1h7m1 0h3m5 0h1m1 0h3m3 0h6m-22 1h1m3 0h1m1 0h3m1 0h1m5 0h1m3 0h1m1 0h1m-31 1h7m1 0h1m1 0h1m1 0h1m1 0h2m1 0h3m1 0h4m1 0h1m1 0h1m1 0h1m-31 1h1m5 0h1m1 0h1m1 0h1m3 0h1m1 0h1m2 0h1m2 0h3m3 0h4m-32 1h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h1m4 0h1m2 0h7m3 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h5m2 0h1m1 0h1m3 0h2m-33 1h1m1 0h3m1 0h1m4 0h6m2 0h1m3 0h2m2 0h2m1 0h3m-33 1h1m5 0h1m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m2 0h8m-33 1h7m1 0h1m2 0h1m1 0h1m2 0h2m1 0h1m2 0h1m1 0h1m1 0h3"/></svg>
+      <span>scan for the slides</span>
+    </a>
     <svg class="motif" viewBox="0 0 360 120" aria-hidden="true">
       <g fill="none" stroke-width="3.5" stroke-linecap="round">
         <g transform="translate(60 60) rotate(-30)" stroke="#58C4DD"><circle cx="-15" cy="0" r="11" fill="#58C4DD" fill-opacity=".15"/><path d="M -4 0 H 26 M 17 0 V 8 M 23 0 V 6"/></g>
