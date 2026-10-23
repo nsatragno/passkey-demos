@@ -201,6 +201,14 @@ pre.tight code { font-size: 14px; }
 .slide-index button:hover, .slide-index button:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
 .slide-index li.current button { color: var(--yellow); }
 .slide-index li.current button .n { color: var(--yellow); }
+.slide-index.help .si-panel { width: min(720px, 92vw); }
+.keys-table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 16px; color: var(--ink); }
+.keys-table td { padding: 9px 10px; border-top: 1px solid var(--line); }
+.keys-table td:first-child { white-space: nowrap; width: 1%; }
+.keys-table kbd {
+  font-family: var(--mono); font-size: 14px; color: var(--yellow);
+  background: rgba(255, 255, 255, .05); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px;
+}
 
 /* embedded previews (presenter window) */
 .embed .hud, .embed .navbtns { display: none; }

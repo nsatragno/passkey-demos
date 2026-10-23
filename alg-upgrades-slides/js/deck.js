@@ -14,7 +14,7 @@
  *   ?index      debug: open the slide index (press I) on load
  *
  * Keys: Space/→ next · Shift+Space/← back · Home/End · F fullscreen ·
- *       P presenter window · I slide index
+ *       P presenter window · I slide index · ? hotkey help
  */
 (function () {
   'use strict';
@@ -311,6 +311,27 @@
     // Debug: ?index opens the index on load (screenshots).
     if (params.has('index')) setTimeout(() => queue.then(openIndex), 500);
 
+    /* ---- hotkey help (press ?) ---- */
+    const help = document.createElement('div');
+    help.className = 'slide-index help';
+    help.hidden = true;
+    const keys = [
+      ['Space · → · ↓ · PageDown · Enter', 'Next step / slide'],
+      ['Shift+Space · ← · ↑ · PageUp · Backspace', 'Previous step / slide'],
+      ['Click slide · ▶ button', 'Next step / slide'],
+      ['Home / End', 'First / last slide'],
+      ['I', 'Slide index'],
+      ['P', 'Open presenter window'],
+      ['F', 'Toggle fullscreen'],
+      ['?', 'This help'],
+      ['Esc', 'Close overlay'],
+    ];
+    help.innerHTML = '<div class="si-panel"><div class="si-head">Hotkeys <span>? or Esc to close</span></div><table class="keys-table">' +
+      keys.map(([k, d]) => `<tr><td><kbd>${k}</kbd></td><td>${d}</td></tr>`).join('') + '</table></div>';
+    document.body.appendChild(help);
+    help.addEventListener('click', (e) => { if (e.target === help) help.hidden = true; });
+    if (params.has('help')) help.hidden = false; // debug: screenshots
+
     window.addEventListener('keydown', (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key;
@@ -319,6 +340,11 @@
         if (k === 'Escape' || k === 'i' || k === 'I') { e.preventDefault(); closeIndex(); }
         return;
       }
+      if (!help.hidden) {
+        if (k === 'Escape' || k === '?') { e.preventDefault(); help.hidden = true; }
+        return;
+      }
+      if (k === '?') { e.preventDefault(); help.hidden = false; return; }
       if (k === 'i' || k === 'I') { e.preventDefault(); openIndex(); return; }
       if ((k === ' ' && !e.shiftKey) || k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === 'Enter') {
         e.preventDefault(); deck.next();
