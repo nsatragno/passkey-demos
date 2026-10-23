@@ -51,7 +51,7 @@
   };
 
   K.phone = (s, label) => {
-    const body = s.rect(112, 196, { color: C.light, sw: 3, rx: 22, fill: '#111317', fo: 1 });
+    const body = s.rect(112, 196, { color: C.light, sw: 3, rx: 22, fill: C.panel, fo: 1 });
     const screen = s.rect(94, 150, { color: C.dim, sw: 1.5, rx: 8 }).at(0, -4);
     const btn = s.circle(5, { color: C.dim, sw: 1.5 }).at(0, 86);
     const m = s.g(body, screen, btn);
@@ -61,7 +61,7 @@
 
   K.secKey = (s, label, o = {}) => {
     const conn = s.rect(38, 34, { color: C.grey, sw: 2.5, rx: 4 }).at(0, -80);
-    const body = s.rect(72, 130, { color: C.light, sw: 3, rx: 18, fill: '#111317', fo: 1 });
+    const body = s.rect(72, 130, { color: C.light, sw: 3, rx: 18, fill: C.panel, fo: 1 });
     const pad = s.circle(15, { color: o.pad ?? C.gold, sw: 2.5, fill: o.pad ?? C.gold, fo: 0.2 }).at(0, 22);
     const hole = s.circle(7, { color: C.dim, sw: 2 }).at(0, -40);
     const m = s.g(conn, body, pad, hole);
@@ -71,7 +71,7 @@
   };
 
   K.browser = (s, w = 220, h = 150, label = 'browser') => {
-    const box = s.rect(w, h, { color: C.light, sw: 2.5, rx: 12, fill: '#111317', fo: 1 });
+    const box = s.rect(w, h, { color: C.light, sw: 2.5, rx: 12, fill: C.panel, fo: 1 });
     const bar = s.line(-w / 2, -h / 2 + 26, w / 2, -h / 2 + 26, { color: C.dim, sw: 2 });
     const dots = [0, 1, 2].map((i) => s.circle(4, { color: [C.red, C.gold, C.green][i], sw: 1.5, fill: [C.red, C.gold, C.green][i], fo: 0.8 })
       .at(-w / 2 + 16 + i * 14, -h / 2 + 13));
@@ -89,7 +89,7 @@
     const m = s.g();
     for (let i = 0; i < 3; i++) {
       const y = (i - 1) * 40;
-      m.add(s.rect(130, 32, { color: C.light, sw: 2.5, rx: 6, fill: '#111317', fo: 1 }).at(0, y));
+      m.add(s.rect(130, 32, { color: C.light, sw: 2.5, rx: 6, fill: C.panel, fo: 1 }).at(0, y));
       m.add(s.circle(4.5, { color, sw: 1.5, fill: color, fo: 1 }).at(46, y));
       m.add(s.line(-48, y, -14, y, { color: C.dim, sw: 3 }));
     }
@@ -257,7 +257,7 @@
   K.picker = (s, options, o = {}) => {
     const w = o.w ?? 320, rowH = 50;
     const h = 64 + options.length * rowH + 14;
-    const box = s.rect(w, h, { color: C.light, sw: 2.5, fill: '#15181e', fo: 1, rx: 16 });
+    const box = s.rect(w, h, { color: C.light, sw: 2.5, fill: C.panel2, fo: 1, rx: 16 });
     const title = s.text(o.title ?? 'Choose where to save', { size: 18, color: C.white, anchor: 'start', font: 'sans' })
       .at(-w / 2 + 20, -h / 2 + 28);
     const m = s.g(box, title);

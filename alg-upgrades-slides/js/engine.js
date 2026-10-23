@@ -33,22 +33,54 @@
     thereBack: (t) => Ease.smooth(t < 0.5 ? 2 * t : 2 - 2 * t),
   };
 
-  const C = {
-    bg: '#0b0c10',
-    blue: '#58C4DD',
-    blueD: '#29ABCA',
-    yellow: '#F4D345',
-    gold: '#F0AC5F',
-    green: '#83C167',
-    red: '#FC6255',
-    teal: '#5CD0B3',
-    maroon: '#C55F73',
-    white: '#ECECEC',
-    light: '#BBBBBB',
-    grey: '#888888',
-    dim: '#4A4F57',
-    dark: '#1B1E24',
+  /*
+   * Palette. Scenes read colours from `C` while they build, so switching
+   * themes swaps the values in place and re-runs every live stage to its
+   * current time (see setTheme). Timing and motion are unaffected.
+   */
+  const THEMES = {
+    dark: {
+      bg: '#0b0c10',
+      blue: '#58C4DD',
+      blueD: '#29ABCA',
+      yellow: '#F4D345',
+      gold: '#F0AC5F',
+      green: '#83C167',
+      red: '#FC6255',
+      teal: '#5CD0B3',
+      maroon: '#C55F73',
+      white: '#ECECEC',
+      light: '#BBBBBB',
+      grey: '#888888',
+      dim: '#4A4F57',
+      dark: '#1B1E24',
+      panel: '#111317',   // device / box bodies
+      panel2: '#15181e',  // list boxes
+      paper: '#14171c',   // documents
+    },
+    // High-contrast light theme for washed-out projectors.
+    light: {
+      bg: '#f6f4ef',
+      blue: '#1374A0',
+      blueD: '#0E5C80',
+      yellow: '#A77A00',
+      gold: '#C8611A',
+      green: '#3B8728',
+      red: '#D0362B',
+      teal: '#11866B',
+      maroon: '#A63A52',
+      white: '#1D1F24',
+      light: '#474B53',
+      grey: '#73777E',
+      dim: '#B3B6BC',
+      dark: '#E8E5DE',
+      panel: '#FFFFFF',
+      panel2: '#FFFFFF',
+      paper: '#FFFFFF',
+    },
   };
+  const C = { ...THEMES.dark };
+  let themeName = 'dark';
 
   function hex2rgb(h) {
     h = String(h).replace('#', '');
@@ -765,7 +797,26 @@
       if (ctx.t >= this.stopAt - EPS) this._paused();
     }
 
+    /**
+     * Rebuild the scene at its current time, e.g. after a palette change.
+     * Playback carries on from the same point if it was running.
+     */
+    async refresh() {
+      if (!this.ctx || !this.pts.length) return;
+      const t = this.ctx.t, playing = this.playing;
+      await this.seek(t);
+      if (playing) this.playing = true;
+    }
+
     destroy() { stages.delete(this); this.gen++; }
+  }
+
+  /** Switch palettes ('dark' | 'light') and recolour every live scene. */
+  function setTheme(name) {
+    if (!THEMES[name] || name === themeName) return Promise.resolve();
+    themeName = name;
+    Object.assign(C, THEMES[name]);
+    return Promise.all([...stages].map((s) => s.refresh()));
   }
 
   function loop(ts) {
@@ -778,7 +829,8 @@
   requestAnimationFrame(loop);
 
   window.Anim = {
-    C, Ease, FONTS, Stage, Ctx, Mob, el, lerp, clamp, lerpColor,
+    C, THEMES, setTheme, get theme() { return themeName; },
+    Ease, FONTS, Stage, Ctx, Mob, el, lerp, clamp, lerpColor,
     create, uncreate, write: create, fadeIn, fadeOut, to, recolor, indicate, wiggle, along,
     counter, wait: waitAnim, call, lagged, succession, anim,
   };

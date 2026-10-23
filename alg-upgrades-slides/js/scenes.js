@@ -165,7 +165,7 @@
     /* ---- continuity: start from slide 3's final frame (it is drawn with a
      * -60 vertical offset, so everything here is shifted by hand) ---- */
     const Y = -60;
-    const body = s.rect(112, 196, { color: C.light, sw: 3, rx: 22, fill: '#111317', fo: 1 }).at(190, 262 + Y);
+    const body = s.rect(112, 196, { color: C.light, sw: 3, rx: 22, fill: C.panel, fo: 1 }).at(190, 262 + Y);
     const screen = s.rect(94, 150, { color: C.dim, sw: 1.5, rx: 8 }).at(190, 258 + Y);
     const btn = s.circle(5, { color: C.dim, sw: 1.5 }).at(190, 348 + Y);
     const phoneLbl = s.text('phone', { size: 20, color: C.light }).at(190, 390 + Y);
@@ -199,7 +199,7 @@
       r.setAttribute('rx', lerp(from.rx, goal.rx, a).toFixed(2));
       r.setAttribute('stroke-width', lerp(from.sw, goal.sw, a).toFixed(2));
       r.setAttribute('stroke', lerpColor(C.light, C.dim, a));
-      r.setAttribute('fill', lerpColor('#111317', C.dark, a));
+      r.setAttribute('fill', lerpColor(C.panel, C.dark, a));
       r.setAttribute('fill-opacity', lerp(from.fo, goal.fo, a).toFixed(3));
       body.x = lerp(from.x, goal.x, a); body.y = lerp(from.y, goal.y, a); body.apply();
     });
@@ -511,7 +511,7 @@
     /* ---- the signed document ---- */
     await s.step('The authenticator builds the assertion. Its <b>authenticator data</b> has an <b>extensions</b> section, empty for now.');
     const doc = s.g().at(640, 210);
-    const paper = s.rect(380, 230, { color: C.light, sw: 2, fill: '#14171c', fo: 1, rx: 10 });
+    const paper = s.rect(380, 230, { color: C.light, sw: 2, fill: C.paper, fo: 1, rx: 10 });
     const head = s.text('assertion', { size: 22, anchor: 'start' }).at(-170, -90);
     const adBox = s.rect(344, 160, { color: C.dim, sw: 1.5, rx: 8 }).at(0, 18);
     const adLbl = s.text('authData', { size: 14, italic: true, color: C.grey, anchor: 'start' }).at(-160, -46);

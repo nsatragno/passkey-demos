@@ -12,9 +12,10 @@
  *               <pre id="selftest">
  *   ?at=T       debug: freeze the current scene at time T seconds
  *   ?index      debug: open the slide index (press I) on load
+ *   ?light      force the light theme (?dark forces the dark one)
  *
  * Keys: Space/→ next · Shift+Space/← back · Home/End · F fullscreen ·
- *       P presenter window · I slide index · ? hotkey help
+ *       P presenter window · I slide index · L light/dark theme · ? hotkey help
  */
 (function () {
   'use strict';
@@ -27,6 +28,17 @@
 
   if (EMBED) document.documentElement.classList.add('embed');
   if (STATIC) document.documentElement.classList.add('static');
+
+  /* ---------------- theme (dark / light) ---------------- */
+  // The choice is remembered in localStorage; the storage event keeps the
+  // presenter's preview frames in sync with the main deck.
+  const THEME_KEY = 'alg-upgrades-theme';
+  const storedTheme = () => { try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; } };
+  const applyTheme = (name) => {
+    document.documentElement.classList.toggle('light', name === 'light');
+    return Anim.setTheme(name);
+  };
+  applyTheme(params.has('light') ? 'light' : params.has('dark') ? 'dark' : (storedTheme() === 'light' ? 'light' : 'dark'));
 
   /* ---------------- error capture (for selftest) ---------------- */
   const errors = [];
@@ -210,8 +222,18 @@
     goto: (slide, step) => enqueue(() => activate(slide - 1, 0, step ?? 0)),
     first: () => enqueue(() => activate(0, 0, 0)),
     last: () => enqueue(() => activate(N - 1, -1)),
+    /** Switch theme ('light' | 'dark'; toggles if omitted) and remember it. */
+    theme: (name) => enqueue(() => {
+      name = name ?? (Anim.theme === 'light' ? 'dark' : 'light');
+      try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* ignore */ }
+      return applyTheme(name);
+    }),
   };
   window.DECK = deck;
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === THEME_KEY) enqueue(() => applyTheme(e.newValue === 'light' ? 'light' : 'dark'));
+  });
 
   /* ---------------- state, hash, HUD, broadcast ---------------- */
   const channel = EMBED ? null : DeckSync.open();
@@ -269,6 +291,7 @@
         if (m.cmd === 'next') p = deck.next();
         else if (m.cmd === 'prev') p = deck.prev();
         else if (m.cmd === 'goto') p = deck.goto(m.slide, m.step);
+        else if (m.cmd === 'theme') p = deck.theme();
         // Acknowledge once the command has been processed.
         if (p && m.id != null) p.then(() => { if (cur >= 0) channel.postMessage({ ...state(), ack: m.id }); });
       }
@@ -323,6 +346,7 @@
       ['I', 'Slide index'],
       ['P', 'Open presenter window'],
       ['F', 'Toggle fullscreen'],
+      ['L', 'Toggle light / dark theme'],
       ['?', 'This help'],
       ['Esc', 'Close overlay'],
     ];
@@ -353,6 +377,7 @@
       } else if (k === 'Home') { e.preventDefault(); deck.first(); }
       else if (k === 'End') { e.preventDefault(); deck.last(); }
       else if (k === 'f' || k === 'F') { e.preventDefault(); toggleFs(); }
+      else if (k === 'l' || k === 'L') { e.preventDefault(); deck.theme(); }
       else if (k === 'p' || k === 'P') { e.preventDefault(); openPresenter(); }
     });
 
@@ -402,6 +427,36 @@
       if (!entry.ok) report.ok = false;
       report.slides.push(entry);
     }
+    // Light theme: every step must rebuild cleanly, and no dark-palette
+    // colour may survive (that would mean a hard-coded colour somewhere).
+    const T = Anim.THEMES;
+    const darkOnly = new Set(Object.values(T.dark).map((v) => v.toLowerCase())
+      .filter((v) => !Object.values(T.light).some((l) => l.toLowerCase() === v)));
+    await applyTheme('light');
+    report.light = { ok: true, leaks: [], errors: [] };
+    for (let i = 0; i < N; i++) {
+      const c = ctls[i];
+      const before = errors.length;
+      try {
+        await activate(i, 0, 0);
+        for (let k = 0; k < c.count; k++) {
+          await c.show(k);
+          for (const e of sections[i].querySelectorAll('svg.scene [fill], svg.scene [stroke]')) {
+            for (const a of ['fill', 'stroke']) {
+              const v = (e.getAttribute(a) || '').toLowerCase();
+              if (darkOnly.has(v)) report.light.leaks.push(`${i + 1}/${k} <${e.tagName}> ${a}=${v}`);
+            }
+          }
+        }
+      } catch (e) {
+        errors.push(String(e && e.stack || e));
+      }
+      report.light.errors.push(...errors.slice(before));
+    }
+    report.light.leaks = [...new Set(report.light.leaks)].slice(0, 40);
+    report.light.ok = !report.light.leaks.length && !report.light.errors.length;
+    if (!report.light.ok) report.ok = false;
+    await applyTheme('dark');
     const pre = document.createElement('pre');
     pre.id = 'selftest';
     pre.textContent = JSON.stringify(report);

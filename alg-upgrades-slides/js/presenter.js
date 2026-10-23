@@ -59,6 +59,7 @@
       e.preventDefault(); prev();
     } else if (k === 'Home') { e.preventDefault(); goto(1, 0); }
     else if (k === 'End' && state) { e.preventDefault(); goto(state.slideCount, 0); }
+    else if (k === 'l' || k === 'L') { e.preventDefault(); send('theme'); }
   });
 
   /* ---------------- timer & clock ---------------- */
@@ -195,6 +196,10 @@
     }
     await act('goto 13/3', () => goto(13, 3), (b, a) => a.slide === 13 && a.step === 3);
     check('notes present on 13/3', last.notes.length > 0 && last.nextNotes.length > 0, { notes: last.notes, nextNotes: last.nextNotes });
+    // Toggle the theme while a step is animating: playback must carry on.
+    send('next');
+    await act('theme while playing', () => send('theme'), (b, a) => a.slide === 13 && a.step === 4);
+    await act('theme back', () => send('theme'), (b, a) => a.slide === 13 && a.step === 4);
     await act('goto last', () => goto(last.slideCount, 0), (b, a) => a.slide === a.slideCount);
     finish();
 
