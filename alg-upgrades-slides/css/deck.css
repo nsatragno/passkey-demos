@@ -140,6 +140,9 @@ svg.scene { position: absolute; left: 0; top: 84px; width: 1280px; height: 636px
 .sz-num { font-family: var(--serif-display); font-size: 180px; line-height: .8; color: var(--yellow); }
 .sz-lead { font-family: var(--serif-display); font-size: 58px; line-height: 1.15; margin: 0; color: var(--head); }
 .foot { position: absolute; left: 0; right: 0; bottom: 0; font-size: 20px; font-style: italic; color: var(--ink-2); }
+.statement { display: flex; align-items: center; justify-content: center; text-align: center; }
+.statement p { font-family: var(--serif-display); font-size: 50px; line-height: 1.25; color: var(--head); margin: 0 0 60px; max-width: 980px; }
+.statement b { font-weight: 400; color: var(--red); white-space: nowrap; }
 .lead { font-size: 30px; line-height: 1.4; color: var(--ink); margin: 0 0 28px; font-family: var(--serif-display); }
 .b { color: var(--blue); } .y { color: var(--yellow); } .g { color: var(--green); } .r { color: var(--red); } .t { color: var(--teal); } .o { color: var(--gold); }
 a { color: var(--blue); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--blue) 35%, transparent); }

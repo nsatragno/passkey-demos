@@ -194,12 +194,12 @@
     for (let i = 0; i < 2; i++) {
       await act(`prev #${i + 1}`, prev, (b, a) => cmp(key(a), key(b)) < 0 || (b.playing && cmp(key(a), key(b)) === 0));
     }
-    await act('goto 14/3', () => goto(14, 3), (b, a) => a.slide === 14 && a.step === 3);
-    check('notes present on 14/3', last.notes.length > 0 && last.nextNotes.length > 0, { notes: last.notes, nextNotes: last.nextNotes });
+    await act('goto 15/3', () => goto(15, 3), (b, a) => a.slide === 15 && a.step === 3);
+    check('notes present on 15/3', last.notes.length > 0 && last.nextNotes.length > 0, { notes: last.notes, nextNotes: last.nextNotes });
     // Toggle the theme while a step is animating: playback must carry on.
     send('next');
-    await act('theme while playing', () => send('theme'), (b, a) => a.slide === 14 && a.step === 4);
-    await act('theme back', () => send('theme'), (b, a) => a.slide === 14 && a.step === 4);
+    await act('theme while playing', () => send('theme'), (b, a) => a.slide === 15 && a.step === 4);
+    await act('theme back', () => send('theme'), (b, a) => a.slide === 15 && a.step === 4);
     await act('goto last', () => goto(last.slideCount, 0), (b, a) => a.slide === a.slideCount);
     finish();
 
