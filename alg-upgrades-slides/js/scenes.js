@@ -1137,5 +1137,63 @@
     await s.play(create(D), setFill(1, C.red));
   };
 
+  /* ================================================================== */
+  /* appendix: a synced device that doesn't support ML-DSA yet          */
+  /* ================================================================== */
+  SC.mixedSupport = async (s) => {
+    s.offset(0, -45);
+    /* ---- sync provider: synced passkeys on top, two devices below ---- */
+    const acct = K.panel(s, 640, 500, 'sync provider · alice\'s account').at(380, 400);
+    const pkLbl = s.text('synced passkeys', { size: 15, italic: true, color: C.grey, anchor: 'start' }).at(90, 205);
+    const credAt = (i) => [175 + i * 150, 250];
+    const a = mini(s, 'A', ...credAt(0));
+    const DX = [230, 530], DY = 450, KY = DY - 3;
+    const phones = DX.map((x, i) => K.phone(s, `device ${i + 1}`).set({ s: 0.8 }).at(x, DY));
+    const keys = DX.map((x) => K.key(s, C.blue).set({ s: 0.9 }).at(x, KY));
+    const ok = K.chip(s, 'ML-DSA ✓', C.green, { w: 150, h: 34, size: 15 }).at(DX[0], 605);
+    const no = K.chip(s, 'ML-DSA ✗', C.red, { w: 150, h: 34, size: 15 }).at(DX[1], 605);
+    const noLbl = s.text('not updated yet', { size: 14, italic: true, color: C.grey }).at(DX[1], 636);
+
+    /* ---- relying party ---- */
+    const sv = K.server(s, 'shrine.com').at(1050, 250);
+    const db = K.db(s).at(1050, 530);
+    const dbA = mini(s, 'A', 1050 + db.slotX, 530 + db.slotY);
+    const SV = [985, 250];
+    const dev = (i) => [DX[i] + 50, DY - 40];
+    const status = (y, segs) => s.text(segs, { size: 18, font: 'mono', anchor: 'start' }).at(800, y);
+
+    s.notes('alice has two devices that sync passkeys through the <b>same provider</b>. Device 1 already supports ML-DSA. Device 2 doesn\'t, because it hasn\'t been updated yet.');
+    await s.play(create(acct.box, { dur: 0.8 }), fadeIn(acct.title), fadeIn(sv), fadeIn(db));
+    await s.play(fadeIn(pkLbl), create(a), fadeIn(dbA), ...phones.map((p) => fadeIn(p)));
+    await s.play(...keys.map((k) => fadeIn(k, { scale: 0.6 })), fadeIn(ok), fadeIn(no), fadeIn(noLbl));
+
+    await s.step('alice signs in on <b>device 1</b> and shrine.com sends <code>algUpgrade</code>. Device 1 supports ML-DSA, so it mints B, signed by A, and shrine.com replaces A with B.');
+    await K.travel(s, K.pill(s, 'get() + algUpgrade', C.teal), [SV, dev(0)], { out: true, dur: 1.3 });
+    const b = mini(s, 'B', ...credAt(1));
+    await s.play(create(b), recolor(keys[0], C.yellow, { dur: 0.6 }));
+    await K.travel(s, K.pill(s, [['assertion(A) + ', {}], ['B', { color: C.yellow }]], C.blue), [dev(0), SV], { out: true, dur: 1.3 });
+    await s.play(...swap(dbA, mini(s, 'B', dbA.x, dbA.y)));
+
+    await s.step('B is a synced passkey, so it reaches <b>device 2</b> too. But device 2 can\'t sign with ML-DSA.');
+    await K.travel(s, K.key(s, C.yellow).set({ s: 0.7 }), [credAt(1), [DX[1], KY]], { out: true, dur: 1 });
+    await s.play(recolor(keys[1], C.yellow, { dur: 0.5 }));
+    await s.play(indicate(no, { color: C.red, scale: 1.12 }), indicate(noLbl, { color: C.red }));
+
+    await s.step('Later, alice signs in on device 2. shrine.com now only accepts B, and device 2 can\'t use it: <b>the passkey no longer works there</b>.');
+    await K.travel(s, K.pill(s, 'get()', C.teal), [SV, dev(1)], { out: true, dur: 1.2 });
+    const x = K.cross(s, C.red, 1.6).at(DX[1], KY);
+    await s.play(recolor(keys[1], C.red, { dur: 0.5 }), create(x, { dur: 0.5 }));
+    const fail = status(395, [['✗ ', { color: C.red }], ['can\'t sign in on device 2', { color: C.red }]]);
+    await s.play(write(fail, { dur: 0.9 }));
+
+    await s.step('So before upgrades to ML-DSA are allowed, it\'s important that the <b>majority of devices</b> support it. Otherwise upgrading on one device locks the user out of the others.');
+    const take = s.lines([
+      [['Before allowing upgrades to ', { color: C.light }], ['ML-DSA', { color: C.yellow }], [',', { color: C.light }]],
+      [['make sure ', { color: C.light }], ['most devices', { color: C.white }], [' support it', { color: C.light }]],
+    ], { size: 21, lh: 32, italic: true }).at(800, 625);
+    await s.play(fadeOut(fail, { dur: 0.4 }));
+    await s.play(write(take, { dur: 1.2 }));
+  };
+
   window.SCENES = SC;
 })();
