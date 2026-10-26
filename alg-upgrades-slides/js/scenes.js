@@ -1203,5 +1203,53 @@
     await s.play(write(indep, { dur: 1.2 }));
   };
 
+  /* ================================================================== */
+  /* appendix: CTAP credential management hides backups                 */
+  /* ================================================================== */
+  SC.credMgmt = async (s) => {
+    s.offset(0, -50);
+    /* ---- platform: a "manage security key" UI ---- */
+    const plat = K.panel(s, 440, 380, 'platform · manage security key').at(300, 400);
+    /* ---- security key storage ---- */
+    const store = K.panel(s, 520, 380, 'security key storage').at(930, 400);
+    const who = (user, rp, y) => s.text([['{ ', { color: C.grey }], [user, { color: C.white }], [', ', { color: C.grey }], [rp, { color: C.teal }], [' }', { color: C.grey }]],
+      { size: 16, font: 'mono', anchor: 'start' }).at(700, y);
+    const card = (id, alg, color, x, y) => K.card(s, { id, alg, color }).set({ s: 0.72 }).at(x, y);
+    const w1 = who('alice', 'shrine.com', 290), w2 = who('bob', 'bank.com', 450);
+    const A = card('A', 'ECDSA P-256', C.blue, 800, 345);
+    const bk = s.text('backup', { size: 15, italic: true, color: C.grey }).at(800, 400);
+    const B = card('B', 'ML-DSA-44', C.yellow, 960, 345);
+    const X = card('X', 'ECDSA P-256', C.green, 800, 505);
+    // Requests travel right above the panels, responses travel back left.
+    const req = (text) => K.travel(s, K.pill(s, text, C.teal, { size: 15 }), [[300, 168], [930, 168]], { out: true, dur: 1.2 });
+    const res = (text, color = C.light) => K.travel(s, K.pill(s, text, color, { size: 15 }), [[930, 168], [300, 168]], { out: true, dur: 1.2 });
+
+    s.notes('Security keys implement CTAP <b>credential management</b> (<code>authenticatorCredentialManagement</code>): platforms use it to list, update and delete discoverable credentials so users can manage the storage. Here the key holds alice\'s B, its backup A, and bob\'s X.');
+    await s.play(create(plat.box, { dur: 0.8 }), fadeIn(plat.title), create(store.box, { dur: 0.8 }), fadeIn(store.title));
+    await s.play(lagged([fadeIn(w1), fadeIn(A), fadeIn(bk), fadeIn(B), fadeIn(w2), fadeIn(X)], { dur: 1.2 }));
+
+    await s.step('To stay <b>backwards compatible</b>, the authenticator pretends backups don\'t exist. Enumerating shrine.com\'s credentials returns only B, and the counts (<code>totalCredentials</code>, <code>existingResidentCredentialsCount</code>) leave A out.');
+    const hid = dashedRect(s, 150, 66, C.grey).at(800, 345);
+    await s.play(to(A, { o: 0.3 }, { dur: 0.6 }), fadeIn(hid), to(bk, { o: 0.4 }, { dur: 0.6 }));
+    await req('enumerateCredentialsBegin(shrine.com)');
+    await res([['B', { color: C.yellow }], [' · totalCredentials: 1', {}]]);
+    const rpT = s.text('shrine.com', { size: 18, font: 'mono', color: C.teal, anchor: 'start' }).at(110, 292);
+    const row = mini(s, 'B', 200, 345);
+    const user = s.text('alice', { size: 20, font: 'mono', color: C.white, anchor: 'start' }).at(285, 345);
+    const cnt = s.text('1 credential', { size: 16, italic: true, color: C.grey, anchor: 'start' }).at(110, 400);
+    await s.play(fadeIn(rpT), fadeIn(row, { dx: -10 }), fadeIn(user, { dx: -10 }), fadeIn(cnt));
+
+    await s.step('When the user deletes B, the authenticator deletes <b>B and its backup A</b>. Otherwise a credential the user thinks is gone would still be sitting in storage.');
+    await s.play(indicate(row, { color: C.red, scale: 1.08 }));
+    await req([['deleteCredential(', {}], ['B', { color: C.yellow }], [')', {}]]);
+    await s.play(recolor(B, C.red, { dur: 0.5 }), recolor(A, C.red, { dur: 0.5 }), fadeOut(hid));
+    await s.play(uncreate(B, { dur: 0.8 }), uncreate(A, { dur: 0.8 }), fadeOut(bk), fadeOut(w1));
+    await res('CTAP2_OK', C.green);
+    const gone = s.text([['✓ ', { color: C.green }], ['B and its backup A deleted', { color: C.green, italic: true }]], { size: 18, anchor: 'start' }).at(700, 345);
+    await s.play(fadeOut(row), fadeOut(user), fadeOut(cnt), write(gone, { dur: 0.9 }));
+    const none = s.text('no credentials', { size: 16, italic: true, color: C.grey, anchor: 'start' }).at(110, 345);
+    await s.play(fadeIn(none));
+  };
+
   window.SCENES = SC;
 })();

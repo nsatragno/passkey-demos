@@ -132,6 +132,13 @@ svg.scene { position: absolute; left: 0; top: 84px; width: 1280px; height: 636px
 .rm-card.now .rm-status { border-color: var(--yellow); color: var(--yellow); }
 .rm-card code { white-space: nowrap; font-size: .74em; }
 .rm-title { font-family: var(--serif-display); font-size: 24px; line-height: 1.2; margin: 0 0 22px; color: var(--ink); }
+.step-zero {
+  display: flex; align-items: center; gap: 48px; margin-top: 110px;
+  border: 2.5px solid var(--yellow); border-radius: 22px; padding: 48px 56px;
+  background: color-mix(in srgb, var(--yellow) 6%, transparent);
+}
+.sz-num { font-family: var(--serif-display); font-size: 180px; line-height: .8; color: var(--yellow); }
+.sz-lead { font-family: var(--serif-display); font-size: 58px; line-height: 1.15; margin: 0; color: var(--head); }
 .foot { position: absolute; left: 0; right: 0; bottom: 0; font-size: 20px; font-style: italic; color: var(--ink-2); }
 .lead { font-size: 30px; line-height: 1.4; color: var(--ink); margin: 0 0 28px; font-family: var(--serif-display); }
 .b { color: var(--blue); } .y { color: var(--yellow); } .g { color: var(--green); } .r { color: var(--red); } .t { color: var(--teal); } .o { color: var(--gold); }
@@ -190,7 +197,9 @@ html.light .qr-box svg { box-shadow: 0 0 0 1.5px var(--line); }
 .divider.b { --accent: var(--blue); }
 .divider.y { --accent: var(--yellow); }
 .divider.g { --accent: var(--ink-3); }
-.divider.g h1 { margin: 0; }
+.divider.n { --accent: var(--green); }
+.divider.pr { --accent: var(--teal); }
+.divider.g h1, .divider.n h1, .divider.pr h1 { margin: 0; }
 
 /* Q&A */
 .qa { display: flex; align-items: center; justify-content: center; }

@@ -55,6 +55,14 @@
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
+  <!-- ============================================================ separator: proposal -->
+  <section class="slide divider pr" data-title="Proposal">
+    <div class="div-wrap">
+      <h1>Proposal</h1>
+    </div>
+    <aside class="notes">So here's what we're proposing.</aside>
+  </section>
+
   <!-- ============================================================ requirements -->
   <section class="slide" data-title="Requirements">
     <header class="shead"><h2>Requirements</h2></header>
@@ -148,26 +156,52 @@
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
+  <!-- ============================================================ mixed device support -->
+  <section class="slide" data-scene="mixedSupport" data-title="Synced devices without ML-DSA support">
+    <header class="shead"><h2>Synced devices without ML-DSA support</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ separator: next steps -->
+  <section class="slide divider n" data-title="Next steps">
+    <div class="div-wrap">
+      <h1>Next steps</h1>
+    </div>
+    <aside class="notes">So where do we go from here?</aside>
+  </section>
+
+  <!-- ============================================================ step zero -->
+  <section class="slide" data-title="Next steps: step zero">
+    <header class="shead"><h2>Next steps</h2></header>
+    <div class="body">
+      <div class="step-zero">
+        <div class="sz-num">0</div>
+        <p class="sz-lead">Ship <span class="y">ML-DSA</span> in authenticators</p>
+      </div>
+    </div>
+    <aside class="notes">So before any of the spec work, there's a step zero, and it's the most important one: authenticators need to support ML-DSA, on the majority of devices, before upgrades to it are allowed. That's true for any move to ML-DSA, with or without algUpgrade.</aside>
+  </section>
+
   <!-- ============================================================ next steps -->
-  <section class="slide" data-title="Next steps">
+  <section class="slide" data-title="Next steps: roadmap">
     <header class="shead"><h2>Next steps</h2></header>
     <div class="body">
       <div class="roadmap">
-        <div class="rm-card now" data-step="1">
+        <div class="rm-card now">
           <h3><span class="rm-status">In review</span>WebAuthn</h3>
           <p class="rm-title"><a href="https://github.com/w3c/webauthn/pull/2475">w3c/webauthn#2475</a></p>
           <ul class="small">
             <li>Credential backups</li>
           </ul>
         </div>
-        <div class="rm-card" data-step="2">
+        <div class="rm-card" data-step="1">
           <h3><span class="rm-status">Next</span>Prototype</h3>
           <p class="rm-title">Public prototype</p>
           <ul class="small">
             <li>On top of the virtual authenticator</li>
           </ul>
         </div>
-        <div class="rm-card" data-step="3">
+        <div class="rm-card" data-step="2">
           <h3><span class="rm-status">Next</span>WebAuthn</h3>
           <p class="rm-title">Standardize both extensions</p>
           <ul class="small">
@@ -175,7 +209,7 @@
             <li><code>algUpgrade</code></li>
           </ul>
         </div>
-        <div class="rm-card" data-step="4">
+        <div class="rm-card" data-step="3">
           <h3><span class="rm-status">Next</span>CTAP</h3>
           <p class="rm-title">Teach CTAP the new model</p>
           <ul class="small">
@@ -186,11 +220,10 @@
         </div>
       </div>
     </div>
-    <aside class="notes">Where this goes from here: four next steps.</aside>
-    <aside class="notes" data-for="1">The first piece is already up for review: w3c/webauthn#2475. It changes the authenticator model so a create that would overwrite a credential appends it to a list instead. Empty allow-lists return the newest; allow-lists return the newest match and erase the rest. Existing authenticators count as having one slot, so nothing changes for them. The Signal API is updated to work on the list. Please review!</aside>
-    <aside class="notes" data-for="2">Then a public prototype built on top of the virtual authenticator, so RPs and implementers can try the whole flow before anything ships.</aside>
-    <aside class="notes" data-for="3">Next, follow-up WebAuthn changes to standardize both extensions we just saw: restoreCredentials and algUpgrade.</aside>
-    <aside class="notes" data-for="4">And CTAP needs to catch up: security keys need to learn the new model, where they can store multiple credentials per RP ID and user ID, and the credential management API needs updating to match. Authenticators also need to advertise the capability.</aside>
+    <aside class="notes">Once authenticators are getting there, four next steps. The first piece is already up for review: w3c/webauthn#2475. It changes the authenticator model so a create that would overwrite a credential appends it to a list instead. Empty allow-lists return the newest; allow-lists return the newest match and erase the rest. Existing authenticators count as having one slot, so nothing changes for them. The Signal API is updated to work on the list. Please review!</aside>
+    <aside class="notes" data-for="1">Then a public prototype built on top of the virtual authenticator, so RPs and implementers can try the whole flow before anything ships.</aside>
+    <aside class="notes" data-for="2">Next, follow-up WebAuthn changes to standardize both extensions we just saw: restoreCredentials and algUpgrade.</aside>
+    <aside class="notes" data-for="3">And CTAP needs to catch up: security keys need to learn the new model, where they can store multiple credentials per RP ID and user ID, and the credential management API needs updating to match. Authenticators also need to advertise the capability.</aside>
   </section>
 
   <!-- ============================================================ Q&A -->
@@ -216,6 +249,12 @@
   <!-- ============================================================ storage (appendix) -->
   <section class="slide" data-scene="storage" data-title="Making space: evicting backups">
     <header class="shead"><h2>Making space: evicting backups</h2></header>
+    <svg class="scene" viewBox="0 0 1280 720"></svg>
+  </section>
+
+  <!-- ============================================================ credential management (appendix) -->
+  <section class="slide" data-scene="credMgmt" data-title="FIDO credential management">
+    <header class="shead"><h2>FIDO credential management</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
@@ -262,12 +301,6 @@ const assertion = await navigator.credentials.get({
   <!-- ============================================================ CMTG (appendix) -->
   <section class="slide" data-scene="cmtg" data-title="CMTG keys">
     <header class="shead"><h2>Credential Manager Trust Group keys</h2></header>
-    <svg class="scene" viewBox="0 0 1280 720"></svg>
-  </section>
-
-  <!-- ============================================================ mixed device support (appendix) -->
-  <section class="slide" data-scene="mixedSupport" data-title="Synced devices without ML-DSA support">
-    <header class="shead"><h2>Synced devices without ML-DSA support</h2></header>
     <svg class="scene" viewBox="0 0 1280 720"></svg>
   </section>
 
