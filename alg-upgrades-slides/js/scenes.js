@@ -1193,6 +1193,14 @@
     ], { size: 21, lh: 32, italic: true }).at(800, 625);
     await s.play(fadeOut(fail, { dur: 0.4 }));
     await s.play(write(take, { dur: 1.2 }));
+
+    await s.step('This isn\'t caused by <code>algUpgrade</code>. With the existing APIs from the start of the talk, the RP would register a new ML-DSA passkey with <code>create()</code>, and it would sync to device 2 in exactly the same way. Any move to ML-DSA has this problem.');
+    const indep = s.lines([
+      [['Not specific to ', { color: C.light }], ['algUpgrade', { color: C.yellow, font: 'mono' }], [':', { color: C.light }]],
+      [['a new ML-DSA passkey from ', { color: C.light }], ['create()', { color: C.teal, font: 'mono' }]],
+      [['syncs to device 2 the same way', { color: C.light }]],
+    ], { size: 19, lh: 27, italic: true }).at(800, 386);
+    await s.play(write(indep, { dur: 1.2 }));
   };
 
   window.SCENES = SC;
